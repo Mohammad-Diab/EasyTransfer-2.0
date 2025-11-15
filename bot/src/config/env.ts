@@ -7,6 +7,7 @@ export const config = {
   backendApiUrl: process.env.BACKEND_API_URL || 'http://localhost:3000',
   botServiceToken: process.env.BOT_SERVICE_TOKEN!,
   internalSecret: process.env.INTERNAL_SECRET!,
+  internalPort: parseInt(process.env.INTERNAL_PORT || '3100', 10),
   allowedIps: process.env.ALLOWED_IPS?.split(',') || [],
   nodeEnv: process.env.NODE_ENV || 'development',
 } as const;

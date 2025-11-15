@@ -311,7 +311,7 @@ Implement the /start command to welcome new users and provide basic bot usage in
 ---
 
 ## Task 6: Internal Endpoints for Backend Callbacks
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Medium
 
@@ -319,32 +319,116 @@ Implement the /start command to welcome new users and provide basic bot usage in
 Create protected internal endpoints that the Backend can call to notify the bot of transfer results and deliver OTP codes. Implement two endpoints: one for transfer result notifications (success/failed) and one for OTP delivery. Secure these endpoints with a secret token header (X-Bot-Secret) and optional IP allowlist. When notified, send formatted messages to users via their Telegram user ID. Ensure OTP codes are never stored or logged.
 
 ### Deliverables
-- [ ] Transfer result notification endpoint (POST /internal/notify-result)
-- [ ] OTP delivery endpoint (POST /internal/send-otp)
-- [ ] Secret token validation (X-Bot-Secret header)
-- [ ] Optional IP allowlist validation
-- [ ] Success message formatting (Arabic with ✅)
-- [ ] Failure message formatting (Arabic with ❌)
-- [ ] OTP message formatting (Arabic)
-- [ ] User notification via Telegram API
-- [ ] Error handling for invalid payloads
-- [ ] Security logging (reject unauthorized attempts)
+- ✅ Transfer result notification endpoint (POST /internal/notify-result)
+- ✅ OTP delivery endpoint (POST /internal/send-otp)
+- ✅ Secret token validation (X-Bot-Secret header)
+- ✅ Optional IP allowlist validation
+- ✅ Success message formatting (Arabic with ✅)
+- ✅ Failure message formatting (Arabic with ❌)
+- ✅ OTP message formatting (Arabic)
+- ✅ User notification via Telegram API
+- ✅ Error handling for invalid payloads
+- ✅ Security logging (reject unauthorized attempts)
 
 ### Acceptance Criteria
-- Endpoints only accept requests with valid X-Bot-Secret header
-- Invalid token returns 403 Forbidden
-- Transfer success sends: "✅ تم تنفيذ عملية التحويل (ID: {id}) بنجاح."
-- Transfer failure sends: "❌ فشلت عملية التحويل (ID: {id}). السبب: {reason}"
-- OTP delivery sends: "رمز التحقق الخاص بك هو: {code}"
-- OTP codes are NEVER logged
-- IP allowlist works if configured
-- Unauthorized attempts are logged
+- ✅ Endpoints only accept requests with valid X-Bot-Secret header
+- ✅ Invalid token returns 403 Forbidden
+- ✅ Transfer success sends: "✅ تم تنفيذ عملية التحويل (ID: {id}) بنجاح."
+- ✅ Transfer failure sends: "❌ فشلت عملية التحويل (ID: {id}). السبب: {reason}"
+- ✅ OTP delivery sends: "🔐 رمز التحقق الخاص بك هو: {code}\n\nلا تشارك هذا الرمز مع أحد."
+- ✅ OTP codes are NEVER logged
+- ✅ IP allowlist works if configured
+- ✅ Unauthorized attempts are logged
+
+### Implementation Details
+
+**Dependencies Installed:**
+- express@^4.18.0
+- @types/express@^4.17.0 (dev)
+
+**Architecture:**
+- Express server runs alongside grammY bot
+- Server listens on INTERNAL_PORT (default: 3100)
+- Bot instance stored in global scope for endpoint access
+- Security middleware validates all /internal routes
+
+**Files Created/Modified:**
+
+1. **server/internal.ts** (NEW):
+   - Express app with JSON body parser
+   - Security middleware: `validateSecret()`
+     - Checks X-Bot-Secret header against INTERNAL_SECRET
+     - Optional IP allowlist validation
+     - Logs unauthorized attempts (IP, endpoint, timestamp)
+   - POST /internal/notify-result:
+     - Receives: telegram_user_id, transfer_id, status, reason
+     - Validates required fields
+     - Formats message based on status (success/failed)
+     - Sends via bot.api.sendMessage()
+     - Returns 400 for invalid payload, 500 for failures
+   - POST /internal/send-otp:
+     - Receives: telegram_user_id, code
+     - Sends OTP with security warning
+     - NEVER logs the actual code (only logs user_id)
+   - GET /health: Health check (no auth required)
+   - `startInternalServer(bot)`: Starts server and stores bot instance
+
+2. **config/env.ts**: Added INTERNAL_PORT configuration (default: 3100)
+
+3. **config/messages.ts**: Added OTP_CODE message template
+   ```typescript
+   OTP_CODE: (code: string) => `🔐 رمز التحقق الخاص بك هو: ${code}\n\nلا تشارك هذا الرمز مع أحد.`
+   ```
+
+4. **index.ts**: Import and call `startInternalServer(bot)` before bot.start()
+
+5. **.env.example**: Added INTERNAL_PORT=3100
+
+**Security Features:**
+- X-Bot-Secret header validation (403 if invalid)
+- Optional IP allowlist (ALLOWED_IPS env var)
+- Security logging for unauthorized attempts
+- OTP codes never logged (only "OTP delivered to user X")
+- Error handling returns generic messages
+
+**Endpoint Payloads:**
+
+```typescript
+// POST /internal/notify-result
+{
+  "telegram_user_id": 123456789,
+  "transfer_id": 42,
+  "status": "success" | "failed",
+  "reason": "optional error reason"
+}
+
+// POST /internal/send-otp
+{
+  "telegram_user_id": 123456789,
+  "code": "123456"
+}
+```
+
+**Testing:**
+```bash
+# Test with valid secret
+curl -X POST http://localhost:3100/internal/notify-result \
+  -H "Content-Type: application/json" \
+  -H "X-Bot-Secret: your-secret" \
+  -d '{"telegram_user_id":123,"transfer_id":1,"status":"success"}'
+
+# Test without secret (should return 403)
+curl -X POST http://localhost:3100/internal/notify-result \
+  -H "Content-Type: application/json" \
+  -d '{"telegram_user_id":123,"transfer_id":1,"status":"success"}'
+```
 
 ### Notes
-- Store secret token in INTERNAL_SECRET environment variable
-- Message templates in config/messages.ts
-- Mask phone numbers in notifications (091234****)
-- Never store OTP codes in bot memory or logs
+- Internal server starts automatically with bot
+- INTERNAL_SECRET must match between bot and backend
+- IP allowlist optional (empty array = no IP restriction)
+- Security logs help identify unauthorized access attempts
+- OTP codes are sensitive: never log, never store
 
 ---
 

@@ -8,6 +8,9 @@ export const MESSAGES = {
   TRANSFER_FAILED: (id: number, reason: string) =>
     `❌ فشلت عملية التحويل (ID: ${id}). السبب: ${reason}`,
   
+  // OTP delivery
+  OTP_CODE: (code: string) => `🔐 رمز التحقق الخاص بك هو: ${code}\n\nلا تشارك هذا الرمز مع أحد.`,
+  
   // Interactive send mode
   ASK_PHONE: 'يرجى إدخال رقم الهاتف المستلم:',
   ASK_AMOUNT: 'يرجى إدخال المبلغ المراد تحويله:',

@@ -4,6 +4,7 @@ import { config } from './config/env';
 import { setupCommands } from './commands';
 import { authMiddleware } from './middlewares/auth';
 import { sendConversation } from './commands/send';
+import { startInternalServer } from './server/internal';
 
 // Session data structure (empty for now)
 interface SessionData {}
@@ -37,6 +38,9 @@ bot.catch((err) => {
 // Start bot
 async function startBot() {
   try {
+    // Start internal server for backend callbacks
+    startInternalServer(bot);
+
     if (config.botMode === 'webhook') {
       // Webhook mode for production
       await bot.api.setWebhook(config.webhookUrl);
