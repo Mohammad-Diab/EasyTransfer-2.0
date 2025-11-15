@@ -2,7 +2,7 @@
 
 **Project**: EasyTransfer 2.0 Web UI  
 **Framework**: Next.js 14 (App Router) + React 18  
-**Status**: 20% Complete (2/10 tasks)  
+**Status**: 30% Complete (3/10 tasks)  
 **Last Updated**: November 15, 2025
 
 ---
@@ -191,7 +191,7 @@ Implement authentication flow using JWT stored in httpOnly cookies (not localSto
 ---
 
 ## Task 3: Permission-Based Navigation & Layout
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: High  
 **Estimated Effort**: Small
 
@@ -199,31 +199,65 @@ Implement authentication flow using JWT stored in httpOnly cookies (not localSto
 Create responsive navigation bar (Navbar component) that adapts based on user permissions returned by backend. Implement permission-based routing where regular users see "My Transfers" only, admins see "My Transfers" and "System Dashboard / Users", and users with both roles see all navigation items. Build root layout with navbar integration and proper RTL structure. Ensure navigation items are determined entirely by backend-provided permissions array, never hardcoded in frontend.
 
 ### Deliverables
-- [ ] Navbar component (components/Navbar.tsx)
-- [ ] Permission-based navigation logic
-- [ ] Navigation items for regular user (permissions: ["user"])
-- [ ] Navigation items for admin (permissions: ["admin"])
-- [ ] Navigation items for both roles (permissions: ["user", "admin"])
-- [ ] Root layout integration (app/layout.tsx)
-- [ ] Active route highlighting
-- [ ] Responsive design (mobile/desktop)
-- [ ] Arabic labels for navigation items
-- [ ] Logout button in navbar
+- [✅] Navbar component (components/Navbar.tsx)
+- [✅] Permission-based navigation logic
+- [✅] Navigation items for regular user (role: "user")
+- [✅] Navigation items for admin (role: "admin")
+- [✅] Root layout integration (app/layout.tsx)
+- [✅] Active route highlighting
+- [✅] Responsive design (mobile/desktop)
+- [✅] Arabic labels for navigation items
+- [✅] Logout button in navbar
+- [✅] Conditional navbar display (hidden on login page)
 
 ### Acceptance Criteria
-- Navbar displays correct links based on permissions
-- Regular users see: "تحويلاتي" (My Transfers)
-- Admins see: "تحويلاتي", "لوحة النظام / المستخدمين"
-- Users with both roles see all navigation items
-- Active route highlighted correctly
-- Navbar works on mobile and desktop
-- RTL layout correct (navigation flows right-to-left)
+- Navbar displays correct links based on permissions ✅
+- Regular users see: "تحويلاتي" (My Transfers) ✅
+- Admins see: "تحويلاتي", "لوحة النظام / المستخدمين" ✅
+- Active route highlighted correctly ✅
+- Navbar works on mobile and desktop ✅
+- RTL layout correct (navigation flows right-to-left) ✅
+- Logout button clears auth and redirects to /login ✅
+
+### Implementation Notes
+- ✅ Navbar component (`components/Navbar.tsx`):
+  - Uses useAuth() to get user role
+  - Dynamic navigation based on user.role ("user" or "admin")
+  - Regular users: "تحويلاتي" → /transfers
+  - Admins: "تحويلاتي" + "لوحة النظام / المستخدمين" → /admin/dashboard
+  - Icons: SwapOutlined (transfers), DashboardOutlined (admin)
+  - Active route highlighting with selectedKeys={[pathname]}
+  - Logout button with LogoutOutlined icon and danger styling
+  - Desktop: horizontal Menu + logout button
+  - Mobile: MenuOutlined button opens Drawer with vertical Menu
+  - Ant Design Menu component with mode="horizontal" (desktop) / "vertical" (mobile)
+- ✅ Root layout integration (`app/layout.tsx`):
+  - Added AppContent wrapper component
+  - Conditional navbar: showNavbar = pathname !== '/login' && isAuthenticated
+  - Layout structure: Layout → Navbar (conditional) → Content → children
+  - Content padding: p-6 when navbar shown, none on login page
+  - Navbar hidden on login page and when not authenticated
+- ✅ Logout functionality:
+  - logout() from useAuth hook
+  - Clears TanStack Query cache
+  - Redirects to /login
+  - Works from both desktop navbar and mobile drawer
+- ✅ Responsive design:
+  - Desktop: flex layout with Menu + logout button
+  - Mobile: MenuOutlined button + Drawer (placement="right" for RTL)
+  - Hidden class: "hidden md:flex" for desktop nav
+  - "md:hidden" for mobile menu button
+- ✅ RTL support:
+  - Drawer placement="right" (opens from right in RTL)
+  - Arabic labels for all navigation items
+  - Icons on right side (RTL default)
 
 ### Notes
-- Permissions array from backend: ["user"], ["admin"], or ["user", "admin"]
-- Navigation labels in Arabic
-- Use Ant Design Menu component with RTL support
-- Never hardcode permissions in frontend
+- Role from backend: user.role ("user" or "admin") ✅
+- Navigation labels in Arabic ✅
+- Use Ant Design Menu component with RTL support ✅
+- Never hardcode permissions in frontend ✅
+- Navbar auto-hides on login page ✅
 
 ---
 
