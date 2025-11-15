@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
+import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { DeviceModule } from './device/device.module';
 import { BotModule } from './bot/bot.module';
@@ -19,6 +20,7 @@ import { TasksModule } from './tasks/tasks.module';
     }),
     ScheduleModule.forRoot(),
     PrismaModule,
+    CommonModule,
     AuthModule,
     DeviceModule,
     BotModule,

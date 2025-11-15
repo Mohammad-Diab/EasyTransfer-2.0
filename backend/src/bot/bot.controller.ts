@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { BotService } from './bot.service';
+import { CreateTransferDto } from '../transfers/dto/create-transfer.dto';
 
 @Controller('api/bot')
 // @UseGuards(AuthGuard('bot-token'))
@@ -14,7 +15,7 @@ export class BotController {
 
   @Post('transfers')
   async submitTransfer(
-    @Body() body: { telegram_user_id: number; recipient_phone: string; amount: number },
+    @Body() body: { telegram_user_id: number } & CreateTransferDto,
   ) {
     return this.botService.submitTransfer(
       body.telegram_user_id,

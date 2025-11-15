@@ -1,5 +1,9 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { RequestOtpDto } from './dto/request-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { VerifyAndroidOtpDto } from './dto/verify-android-otp.dto';
+import { RateLimitGuard } from '../common/guards/rate-limit.guard';
 
 @Controller('api/auth')
 export class AuthController {
@@ -11,8 +15,12 @@ export class AuthController {
    */
   @Post('web/request-otp')
   @HttpCode(HttpStatus.OK)
-  async requestWebOtp(@Body() body: { phone: string }) {
-    return this.authService.requestWebOtp(body.phone);
+  @UseGuards(RateLimitGuard)
+  async requestWebOtp(@Body() dto: RequestOtpDto) {
+    await this.authService.requestWebOtp(dto.phone);
+    return {
+      message: 'تم إرسال رمز التحقق عبر تيليغرام',
+    };
   }
 
   /**
@@ -21,8 +29,8 @@ export class AuthController {
    */
   @Post('web/verify-otp')
   @HttpCode(HttpStatus.OK)
-  async verifyWebOtp(@Body() body: { phone: string; code: string }) {
-    return this.authService.verifyWebOtp(body.phone, body.code);
+  async verifyWebOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.verifyWebOtp(dto.phone, dto.code);
   }
 
   /**
@@ -31,8 +39,12 @@ export class AuthController {
    */
   @Post('android/request-otp')
   @HttpCode(HttpStatus.OK)
-  async requestAndroidOtp(@Body() body: { phone: string }) {
-    return this.authService.requestAndroidOtp(body.phone);
+  @UseGuards(RateLimitGuard)
+  async requestAndroidOtp(@Body() dto: RequestOtpDto) {
+    await this.authService.requestAndroidOtp(dto.phone);
+    return {
+      message: 'تم إرسال رمز التحقق عبر تيليغرام',
+    };
   }
 
   /**
@@ -41,14 +53,12 @@ export class AuthController {
    */
   @Post('android/verify-otp')
   @HttpCode(HttpStatus.OK)
-  async verifyAndroidOtp(
-    @Body() body: { phone: string; code: string; device_id: string; device_name?: string },
-  ) {
+  async verifyAndroidOtp(@Body() dto: VerifyAndroidOtpDto) {
     return this.authService.verifyAndroidOtp(
-      body.phone,
-      body.code,
-      body.device_id,
-      body.device_name,
+      dto.phone,
+      dto.code,
+      dto.device_id,
+      dto.device_name,
     );
   }
 }

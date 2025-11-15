@@ -8,11 +8,12 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-  BadRequestException,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransfersService } from '../transfers/transfers.service';
 import { OperatorsService } from '../operators/operators.service';
+import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Controller('api/android')
 // @UseGuards(AuthGuard('jwt'))
@@ -46,29 +47,19 @@ export class AndroidController {
   @Post('requests/:id/result')
   @HttpCode(HttpStatus.OK)
   async submitResult(
-    @Param('id') id: string,
-    @Body() body: { status: 'success' | 'failed'; carrier_response: string },
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SubmitResultDto,
   ) {
-    const transferId = parseInt(id);
-
-    if (!body.status || !['success', 'failed'].includes(body.status)) {
-      throw new BadRequestException('Invalid status. Must be "success" or "failed"');
-    }
-
-    if (!body.carrier_response) {
-      throw new BadRequestException('carrier_response is required');
-    }
-
     await this.transfersService.submitTransferResult(
-      transferId,
-      body.status,
-      body.carrier_response,
+      id,
+      dto.status,
+      dto.carrier_response,
     );
 
     return {
       message: 'Result submitted successfully',
-      transfer_id: transferId,
-      status: body.status,
+      transfer_id: id,
+      status: dto.status,
     };
   }
 

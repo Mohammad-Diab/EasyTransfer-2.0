@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Body, Query, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('api/admin')
 // @UseGuards(AuthGuard('jwt'))
@@ -40,9 +41,9 @@ export class AdminController {
   @Put('users/:id')
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateData: { name?: string; role?: string },
+    @Body() dto: UpdateUserDto,
   ) {
-    return this.adminService.updateUser(id, updateData);
+    return this.adminService.updateUser(id, dto);
   }
 
   // Transfer management endpoints
