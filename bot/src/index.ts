@@ -5,6 +5,7 @@ import { setupCommands } from './commands';
 import { authMiddleware } from './middlewares/auth';
 import { sendConversation } from './commands/send';
 import { startInternalServer } from './server/internal';
+import { logger } from './utils/logger';
 
 // Session data structure (empty for now)
 interface SessionData {}
@@ -32,7 +33,12 @@ setupCommands(bot);
 
 // Error handler
 bot.catch((err) => {
-  console.error('Bot error:', err);
+  const ctx = err.ctx;
+  const error = err.error;
+  logger.error('Bot error', error, {
+    update_type: ctx.update.update_id,
+    user_id: ctx.from?.id,
+  });
 });
 
 // Start bot
@@ -44,33 +50,35 @@ async function startBot() {
     if (config.botMode === 'webhook') {
       // Webhook mode for production
       await bot.api.setWebhook(config.webhookUrl);
-      console.log('✅ Bot started successfully in webhook mode');
-      console.log(`🔗 Webhook URL: ${config.webhookUrl}`);
+      logger.info('Bot started in webhook mode', {
+        webhook_url: config.webhookUrl,
+      });
     } else {
       // Polling mode for development
-      console.log('🤖 Starting bot in polling mode...');
+      logger.info('Starting bot in polling mode...');
       await bot.start({
         onStart: async (botInfo) => {
-          console.log('✅ Bot started successfully in polling mode');
-          console.log(`🤖 Bot username: @${botInfo.username}`);
-          console.log(`🔗 Connected to backend: ${config.backendApiUrl}`);
+          logger.info('Bot started in polling mode', {
+            bot_username: botInfo.username,
+            backend_url: config.backendApiUrl,
+          });
         },
       });
     }
   } catch (error) {
-    console.error('❌ Failed to start bot:', error);
+    logger.error('Failed to start bot', error);
     process.exit(1);
   }
 }
 
 // Graceful shutdown
 process.once('SIGINT', () => {
-  console.log('\n⏹️  Stopping bot...');
+  logger.info('Stopping bot (SIGINT)');
   bot.stop();
 });
 
 process.once('SIGTERM', () => {
-  console.log('\n⏹️  Stopping bot...');
+  logger.info('Stopping bot (SIGTERM)');
   bot.stop();
 });
 

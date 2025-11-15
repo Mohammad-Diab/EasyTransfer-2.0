@@ -3,6 +3,7 @@ import { CommandContext } from 'grammy';
 import { backendClient } from '../services/backendClient';
 import { MESSAGES } from '../config/messages';
 import type { MyContext } from '../index';
+import { logger } from '../utils/logger';
 
 // Validation helpers
 function isValidAmount(amount: string): boolean {
@@ -56,7 +57,7 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
       await ctx.reply(MESSAGES.BACKEND_ERROR);
     }
   } catch (error) {
-    console.error('Send conversation error:', error);
+    logger.error('Send conversation error', error, { user_id: userId });
     await ctx.reply(MESSAGES.BACKEND_ERROR);
   }
 }
@@ -96,7 +97,7 @@ export async function sendCommand(ctx: CommandContext<MyContext>) {
         await ctx.reply(MESSAGES.BACKEND_ERROR);
       }
     } catch (error) {
-      console.error('Send command error:', error);
+      logger.error('Send command error', error, { user_id: userId });
       await ctx.reply(MESSAGES.BACKEND_ERROR);
     }
   } else if (args.length === 0) {

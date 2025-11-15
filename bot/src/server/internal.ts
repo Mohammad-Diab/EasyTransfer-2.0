@@ -3,6 +3,7 @@ import { Bot } from 'grammy';
 import { config } from '../config/env';
 import { MESSAGES } from '../config/messages';
 import type { MyContext } from '../index';
+import { logger } from '../utils/logger';
 
 const app = express();
 
@@ -14,10 +15,9 @@ function validateSecret(req: Request, res: Response, next: NextFunction) {
   const secret = req.headers['x-bot-secret'];
 
   if (secret !== config.internalSecret) {
-    console.warn('⚠️  Unauthorized internal endpoint access attempt', {
+    logger.securityEvent('Unauthorized internal endpoint access', {
       ip: req.ip,
       endpoint: req.path,
-      timestamp: new Date().toISOString(),
     });
     return res.status(403).json({ error: 'Forbidden' });
   }
@@ -26,10 +26,9 @@ function validateSecret(req: Request, res: Response, next: NextFunction) {
   if (config.allowedIps.length > 0) {
     const clientIp = req.ip || req.socket.remoteAddress || '';
     if (!config.allowedIps.includes(clientIp)) {
-      console.warn('⚠️  IP not in allowlist', {
+      logger.securityEvent('IP not in allowlist', {
         ip: clientIp,
         endpoint: req.path,
-        timestamp: new Date().toISOString(),
       });
       return res.status(403).json({ error: 'IP not allowed' });
     }
@@ -71,14 +70,14 @@ app.post('/internal/notify-result', async (req: Request, res: Response) => {
     // Send notification to user
     await bot.api.sendMessage(telegram_user_id, message);
 
-    console.log(`✅ Transfer result notification sent to user ${telegram_user_id}`, {
+    logger.notificationSent('transfer', telegram_user_id, {
       transfer_id,
       status,
     });
 
     res.json({ success: true, message: 'Notification sent' });
   } catch (error: any) {
-    console.error('❌ Error sending transfer notification:', error.message);
+    logger.error('Error sending transfer notification', error);
     res.status(500).json({ error: 'Failed to send notification' });
   }
 });
@@ -96,7 +95,7 @@ app.post('/internal/send-otp', async (req: Request, res: Response) => {
     // Get bot instance from global
     const bot: Bot<MyContext> = (global as any).botInstance;
     if (!bot) {
-      console.error('❌ Bot instance not available');
+      logger.error('Bot instance not available in send-otp endpoint');
       return res.status(500).json({ error: 'Bot not initialized' });
     }
 
@@ -104,12 +103,12 @@ app.post('/internal/send-otp', async (req: Request, res: Response) => {
     const message = MESSAGES.OTP_CODE(code);
     await bot.api.sendMessage(telegram_user_id, message);
 
-    console.log(`✅ OTP delivered to user ${telegram_user_id}`);
+    logger.notificationSent('otp', telegram_user_id);
     // IMPORTANT: Do NOT log the actual code
 
     res.json({ success: true, message: 'OTP sent' });
   } catch (error: any) {
-    console.error('❌ Error sending OTP:', error.message);
+    logger.error('Error sending OTP', error);
     res.status(500).json({ error: 'Failed to send OTP' });
   }
 });
@@ -125,7 +124,9 @@ export function startInternalServer(bot: Bot<MyContext>) {
   (global as any).botInstance = bot;
 
   app.listen(config.internalPort, () => {
-    console.log(`🔒 Internal server listening on port ${config.internalPort}`);
-    console.log(`📍 Endpoints: POST /internal/notify-result, POST /internal/send-otp`);
+    logger.info('Internal server started', {
+      port: config.internalPort,
+      endpoints: ['/internal/notify-result', '/internal/send-otp'],
+    });
   });
 }

@@ -1,4 +1,5 @@
 import { config } from '../config/env';
+import { logger } from '../utils/logger';
 
 interface BackendResponse<T = any> {
   data?: T;
@@ -45,11 +46,11 @@ class BackendClient {
       clearTimeout(timeoutId);
       
       if (error.name === 'AbortError') {
-        console.error('Backend API timeout:', endpoint);
+        logger.error('Backend API timeout', new Error('Request timeout'), { endpoint });
         throw new Error('Backend request timeout');
       }
       
-      console.error('Backend API error:', error.message);
+      logger.error('Backend API error', error, { endpoint });
       throw error;
     }
   }

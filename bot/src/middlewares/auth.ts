@@ -1,6 +1,7 @@
 import { Context, NextFunction } from 'grammy';
 import { backendClient } from '../services/backendClient';
 import { MESSAGES } from '../config/messages';
+import { logger } from '../utils/logger';
 
 export async function authMiddleware(ctx: Context, next: NextFunction) {
   const userId = ctx.from?.id;
