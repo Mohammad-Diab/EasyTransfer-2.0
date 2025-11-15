@@ -1,51 +1,93 @@
 'use client';
 
-import { Card, Statistic, Row, Col, Table, Typography } from 'antd';
+import { useState } from 'react';
+import { Card, Statistic, Row, Col, Table, Typography, Input, Select, Space, Empty } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import { useMyTransfers, useMyStats } from '@/hooks/useTransfers';
-import { STATUS_CONFIG } from '@/lib/statusConfig';
+import StatusTag from '@/components/StatusTag';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const { Title } = Typography;
+const { Search } = Input;
 
 function TransfersContent() {
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [searchPhone, setSearchPhone] = useState<string | undefined>(undefined);
+
   const { data: stats, isLoading: statsLoading } = useMyStats();
-  const { data: transfers, isLoading: transfersLoading } = useMyTransfers();
+  const { data: transfersData, isLoading: transfersLoading } = useMyTransfers({
+    page,
+    limit,
+    status,
+    phone: searchPhone,
+  });
+
+  const handleSearch = (value: string) => {
+    setSearchPhone(value || undefined);
+    setPage(1); // Reset to first page on search
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatus(value === 'all' ? undefined : value);
+    setPage(1); // Reset to first page on filter
+  };
 
   const columns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      render: (id: number) => <span className="number">{id}</span>,
+      width: 80,
+      render: (id: number) => <span dir="ltr" className="font-mono">{id}</span>,
     },
     {
       title: 'رقم المستلم',
       dataIndex: 'recipient_phone',
       key: 'recipient_phone',
-      render: (phone: string) => <span className="number">{phone}</span>,
+      render: (phone: string) => <span dir="ltr" className="font-mono">{phone}</span>,
     },
     {
       title: 'المبلغ',
       dataIndex: 'amount',
       key: 'amount',
-      render: (amount: number) => <span className="number">{amount}</span>,
+      width: 120,
+      render: (amount: number) => (
+        <span dir="ltr" className="font-mono font-semibold">
+          {amount.toLocaleString('en-US')} IQD
+        </span>
+      ),
     },
     {
       title: 'الحالة',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => {
-        const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG];
-        return config ? config.label : status;
-      },
+      width: 140,
+      render: (status: string) => <StatusTag status={status} />,
     },
     {
       title: 'التاريخ',
       dataIndex: 'created_at',
       key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleDateString('ar'),
+      width: 160,
+      render: (date: string) => {
+        const d = new Date(date);
+        return (
+          <span dir="ltr" className="font-mono text-sm">
+            {d.toLocaleDateString('ar-IQ')} {d.toLocaleTimeString('ar-IQ', { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </span>
+        );
+      },
     },
   ];
+
+  // Extract transfers array and total from API response
+  const transfers = transfersData?.data || [];
+  const total = transfersData?.total || 0;
 
   return (
     <div>
@@ -54,36 +96,107 @@ function TransfersContent() {
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="إجمالي التحويلات" value={stats?.total || 0} />
+          <Card loading={statsLoading}>
+            <Statistic 
+              title="إجمالي التحويلات" 
+              value={stats?.total || 0}
+              valueStyle={{ direction: 'ltr' }}
+            />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="قيد الانتظار" value={stats?.pending || 0} />
+          <Card loading={statsLoading}>
+            <Statistic 
+              title="قيد الانتظار" 
+              value={stats?.pending || 0}
+              valueStyle={{ direction: 'ltr', color: '#faad14' }}
+            />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="ناجحة" value={stats?.success || 0} />
+          <Card loading={statsLoading}>
+            <Statistic 
+              title="ناجحة" 
+              value={stats?.success || 0}
+              valueStyle={{ direction: 'ltr', color: '#52c41a' }}
+            />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Statistic title="فاشلة" value={stats?.failed || 0} />
+          <Card loading={statsLoading}>
+            <Statistic 
+              title="فاشلة" 
+              value={stats?.failed || 0}
+              valueStyle={{ direction: 'ltr', color: '#ff4d4f' }}
+            />
           </Card>
         </Col>
       </Row>
 
       {/* Transfers Table */}
       <Card>
-        <Table
-          columns={columns}
-          dataSource={transfers || []}
-          loading={transfersLoading}
-          rowKey="id"
-          pagination={{ pageSize: 20 }}
-        />
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          {/* Filters */}
+          <Row gutter={16}>
+            <Col xs={24} sm={12} md={8}>
+              <Search
+                placeholder="ابحث برقم الهاتف..."
+                allowClear
+                enterButton={<SearchOutlined />}
+                onSearch={handleSearch}
+                dir="rtl"
+              />
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Select
+                placeholder="تصفية حسب الحالة"
+                style={{ width: '100%' }}
+                onChange={handleStatusChange}
+                defaultValue="all"
+                options={[
+                  { label: 'الكل', value: 'all' },
+                  { label: 'قيد الانتظار', value: 'pending' },
+                  { label: 'مؤجلة', value: 'delayed' },
+                  { label: 'قيد الإنجاز', value: 'processing' },
+                  { label: 'ناجحة', value: 'success' },
+                  { label: 'فاشلة', value: 'failed' },
+                ]}
+              />
+            </Col>
+          </Row>
+
+          {/* Table */}
+          <Table
+            columns={columns}
+            dataSource={transfers}
+            loading={transfersLoading}
+            rowKey="id"
+            locale={{
+              emptyText: (
+                <Empty
+                  description="لا توجد تحويلات"
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+              ),
+            }}
+            pagination={{
+              current: page,
+              pageSize: limit,
+              total: total,
+              showSizeChanger: true,
+              showTotal: (total) => (
+                <span dir="ltr" className="font-mono">
+                  إجمالي {total} تحويل
+                </span>
+              ),
+              onChange: (newPage, newPageSize) => {
+                setPage(newPage);
+                setLimit(newPageSize);
+              },
+              pageSizeOptions: ['10', '20', '50', '100'],
+            }}
+          />
+        </Space>
       </Card>
     </div>
   );

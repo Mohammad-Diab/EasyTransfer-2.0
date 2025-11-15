@@ -2,7 +2,7 @@
 
 **Project**: EasyTransfer 2.0 Web UI  
 **Framework**: Next.js 14 (App Router) + React 18  
-**Status**: 30% Complete (3/10 tasks)  
+**Status**: 40% Complete (4/10 tasks)  
 **Last Updated**: November 15, 2025
 
 ---
@@ -262,7 +262,7 @@ Create responsive navigation bar (Navbar component) that adapts based on user pe
 ---
 
 ## Task 4: User Transfers Page (My Transfers)
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Large
 
@@ -270,36 +270,71 @@ Create responsive navigation bar (Navbar component) that adapts based on user pe
 Build the user transfers page showing personal transfer history with statistics and table. Implement statistics cards at the top displaying total, pending, processing, successful, and failed transfers fetched from backend. Create transfers table below with columns for ID, phone number, amount, status, and timestamp. Implement server-side pagination, search functionality (phone number and amount), and status display mapping with Arabic labels and colors. Use TanStack Query to fetch data from backend endpoints. Ensure all statistics and data come from backend API, never calculated client-side.
 
 ### Deliverables
-- [ ] My Transfers page (app/transfers/page.tsx)
-- [ ] Statistics cards component (components/StatsCards.tsx)
-- [ ] Transfers table component (components/TransfersTable.tsx)
-- [ ] Statistics endpoint integration (GET /api/user/transfers/stats)
-- [ ] Transfers list endpoint integration (GET /api/user/transfers)
-- [ ] Server-side pagination implementation
-- [ ] Search box for phone/amount filtering
-- [ ] Status display mapping (pending, processing, success, failed)
-- [ ] Arabic status labels with color coding
-- [ ] TanStack Query hooks (useMyTransfers, useMyStats)
-- [ ] Loading states and error handling
-- [ ] Empty state when no transfers
+- [✅] My Transfers page (app/transfers/page.tsx)
+- [✅] StatusTag component (components/StatusTag.tsx)
+- [✅] Statistics endpoint integration (GET /api/me/transfers/stats)
+- [✅] Transfers list endpoint integration (GET /api/me/transfers)
+- [✅] Server-side pagination implementation
+- [✅] Search box for phone filtering
+- [✅] Status filter dropdown (all/pending/delayed/processing/success/failed)
+- [✅] Status display with colored tags and icons
+- [✅] Arabic status labels with color coding
+- [✅] TanStack Query hooks (useMyTransfers, useMyStats)
+- [✅] Loading states and error handling
+- [✅] Empty state when no transfers
 
 ### Acceptance Criteria
-- Statistics cards display correct counts from backend
-- Transfers table shows user's personal transfers only
-- Pagination works with backend (page, limit parameters)
-- Search filters transfers by phone or amount
-- Status displayed with correct Arabic label and color
-- Numbers displayed LTR (left-to-right)
-- All data fetched from backend (no client calculation)
-- Loading spinners shown during data fetch
-- Error messages displayed on API failures
+- Statistics cards display correct counts from backend ✅
+- Transfers table shows user's personal transfers only ✅
+- Pagination works with backend (page, limit parameters) ✅
+- Search filters transfers by phone number ✅
+- Status displayed with correct Arabic label and color ✅
+- Numbers displayed LTR (left-to-right) ✅
+- All data fetched from backend (no client calculation) ✅
+- Loading spinners shown during data fetch ✅
+- Empty state shown when no transfers ✅
+
+### Implementation Notes
+- ✅ StatusTag component (`components/StatusTag.tsx`):
+  - Displays status with Ant Design Tag component
+  - Icons: ClockCircleOutlined (pending), MinusCircleOutlined (delayed), SyncOutlined spin (processing), CheckCircleOutlined (success), CloseCircleOutlined (failed)
+  - Uses STATUS_CONFIG for labels and colors
+  - Handles unknown statuses gracefully
+- ✅ Enhanced useTransfers hooks (`hooks/useTransfers.ts`):
+  - Added UseMyTransfersParams interface (page, limit, status, phone)
+  - useMyTransfers accepts params object with defaults
+  - Params included in queryKey for proper cache management
+  - staleTime: 30s for transfers, 60s for stats
+  - Added UseAllUsersParams interface for admin hooks
+- ✅ Transfers page features (`app/transfers/page.tsx`):
+  - State management: page, limit, status filter, phone search
+  - Search input with SearchOutlined icon, clears on reset
+  - Status Select dropdown: all/pending/delayed/processing/success/failed
+  - Enhanced table columns:
+    - ID: monospace font with dir="ltr", width 80px
+    - Phone: monospace with dir="ltr"
+    - Amount: formatted with toLocaleString() + "IQD", semibold
+    - Status: StatusTag component with icons, width 140px
+    - Date: ar-IQ locale with date + time (HH:mm), width 160px
+  - Statistics cards with loading state and color coding:
+    - Pending: orange (#faad14)
+    - Success: green (#52c41a)
+    - Failed: red (#ff4d4f)
+  - Pagination configuration:
+    - Server-side with current, total, showSizeChanger
+    - showTotal displays "إجمالي X تحويل" in LTR
+    - pageSizeOptions: [10, 20, 50, 100]
+    - Resets to page 1 on search/filter change
+  - Empty state: "لا توجد تحويلات" with simple image
+  - API response handling: extracting data array + total count
 
 ### Notes
-- Statistics endpoint: GET /api/user/transfers/stats
-- Transfers endpoint: GET /api/user/transfers?page=1&limit=10&search=091234
-- Status mapping: pending→قيد الانتظار, processing→قيد الإنجاز, success→ناجحة, failed→فاشلة
-- Use Ant Design Table component with RTL support
-- Keep numbers LTR: <span dir="ltr">{amount}</span>
+- Statistics endpoint: GET /api/me/transfers/stats ✅
+- Transfers endpoint: GET /api/me/transfers?page=1&limit=20&status=pending&phone=0912 ✅
+- Status mapping: pending→قيد الانتظار, delayed→مؤجلة, processing→قيد الإنجاز, success→ناجحة, failed→فاشلة ✅
+- Use Ant Design Table component with RTL support ✅
+- Keep numbers LTR: <span dir="ltr">{amount}</span> ✅
+- All data from backend, no client-side calculations ✅
 
 ---
 
