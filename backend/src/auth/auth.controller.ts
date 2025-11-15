@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -25,12 +26,26 @@ export class AuthController {
 
   /**
    * POST /api/auth/web/verify-otp
-   * Verify OTP and get JWT token for Web
+   * Verify OTP and get JWT token for Web (set as HTTP-only cookie)
    */
   @Post('web/verify-otp')
   @HttpCode(HttpStatus.OK)
-  async verifyWebOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyWebOtp(dto.phone, dto.code);
+  async verifyWebOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.authService.verifyWebOtp(dto.phone, dto.code);
+    
+    // Set JWT token as HTTP-only cookie
+    res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // Return user info without token
+    return {
+      user: result.user,
+      message: 'تم تسجيل الدخول بنجاح',
+    };
   }
 
   /**

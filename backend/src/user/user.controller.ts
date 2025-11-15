@@ -13,7 +13,7 @@ export class UserController {
    */
   @Get('summary')
   async getSummary(@Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId; // Get from JWT payload
 
     const stats = await this.transfersService.getUserStats(userId);
 
@@ -38,7 +38,7 @@ export class UserController {
     @Query('status') status?: string,
     @Query('phone') phone?: string,
   ) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     const pageNum = parseInt(page || '1');
     const limitNum = parseInt(limit || '20');
 
@@ -63,7 +63,7 @@ export class UserController {
    */
   @Get('transfers/stats')
   async getMyStats(@Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     return this.transfersService.getUserStats(userId);
   }
 }

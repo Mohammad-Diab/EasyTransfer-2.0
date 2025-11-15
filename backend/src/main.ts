@@ -3,9 +3,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Enable cookie parser
+  app.use(cookieParser());
 
   // Global validation pipe with transformation and whitelist
   app.useGlobalPipes(

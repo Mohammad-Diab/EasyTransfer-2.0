@@ -23,7 +23,7 @@ export class DeviceController {
   @UseGuards(AuthGuard('jwt'))
   @Get()
   async getMyDevices(@Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     return this.deviceService.getUserDevices(userId);
   }
 
@@ -34,7 +34,7 @@ export class DeviceController {
   @UseGuards(AuthGuard('jwt'))
   @Get('active')
   async getActiveDevice(@Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     const device = await this.deviceService.getActiveDevice(userId);
     return { device };
   }
@@ -46,7 +46,7 @@ export class DeviceController {
   @UseGuards(AuthGuard('jwt'))
   @Get('stats')
   async getMyDeviceStats(@Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     return this.deviceService.getDeviceStats(userId);
   }
 
@@ -58,7 +58,7 @@ export class DeviceController {
   @Delete(':deviceId')
   @HttpCode(HttpStatus.OK)
   async revokeMyDevice(@Param('deviceId') deviceId: string, @Request() req) {
-    const userId = req.user?.sub || 1; // Temporary for development
+    const userId = req.user?.userId;
     await this.deviceService.revokeDevice(deviceId, userId);
     return { message: 'Device revoked successfully' };
   }
@@ -70,7 +70,7 @@ export class DeviceController {
   @UseGuards(AuthGuard('jwt'))
   @Get('user/:userId')
   async getUserDevices(@Param('userId') userId: string, @Request() req) {
-    const adminUserId = req.user?.sub || 1; // Temporary for development
+    const adminUserId = req.user?.userId;
     return this.deviceService.getDevicesByUserId(parseInt(userId), adminUserId);
   }
 
