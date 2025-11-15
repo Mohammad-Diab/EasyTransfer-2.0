@@ -73,32 +73,42 @@ Initialize the Node.js project with TypeScript and grammY framework. Set up proj
 ---
 
 ## Task 2: Backend API Client & Service Token Authentication
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Medium
 
 ### Description
-Create a centralized Backend API client (backendClient.ts) that handles all communication with the Backend API using static service token authentication. Implement methods for authorization checks and transfer submission. Configure the service token to be sent in the Authorization Bearer header with every request. Add proper error handling for network failures, timeouts, and invalid responses. Ensure the client is reusable across all bot commands.
+Create a centralized Backend API client (backendClient.ts) that handles all communication with the Backend API using static service token authentication. Implement methods for authorization checks and transfer submission. Configure the service token to be sent in the X-Bot-Token header with every request. Add proper error handling for network failures, timeouts, and invalid responses. Ensure the client is reusable across all bot commands.
 
 ### Deliverables
-- [ ] BackendClient class in services/backendClient.ts
-- [ ] Service token authentication implementation (Bearer token)
-- [ ] authorize(telegramUserId) method
-- [ ] submitTransfer(telegramUserId, phone, amount) method
-- [ ] Error handling for network failures
-- [ ] Timeout configuration for API calls
-- [ ] Response parsing and validation
-- [ ] Environment configuration (BACKEND_API_URL, BOT_SERVICE_TOKEN)
-- [ ] Singleton instance export
+- [✅] BackendClient class in services/backendClient.ts
+- [✅] Service token authentication implementation (X-Bot-Token header)
+- [✅] authorize(telegramUserId) method
+- [✅] submitTransfer(telegramUserId, phone, amount) method
+- [✅] Error handling for network failures
+- [✅] Timeout configuration for API calls (10 seconds)
+- [✅] Response parsing and validation
+- [✅] Environment configuration (BACKEND_API_URL, BOT_SERVICE_TOKEN)
+- [✅] Singleton instance export
+- [✅] TypeScript type definitions for responses
 
 ### Acceptance Criteria
-- Service token sent in Authorization header
-- Backend API successfully called with correct headers
-- Authorization method returns allowed/denied status
-- Transfer submission method sends correct payload
-- Network errors handled gracefully
-- Timeouts properly configured
-- Client can be imported and used across commands
+- Service token sent in X-Bot-Token header ✅
+- Backend API successfully called with correct headers ✅
+- Authorization method returns allowed/denied status ✅
+- Transfer submission method sends correct payload ✅
+- Network errors handled gracefully ✅
+- Timeouts properly configured (10s with AbortController) ✅
+- Client can be imported and used across commands ✅
+
+### Implementation Notes
+- ✅ Uses `X-Bot-Token` header (not Authorization Bearer)
+- ✅ 10-second timeout with AbortController
+- ✅ Proper error handling for timeout, network failures, and HTTP errors
+- ✅ TypeScript interfaces for type safety
+- ✅ Never logs service token
+- ✅ Singleton pattern for reusability
+- ✅ Generic request method with type parameters
 
 ### Notes
 - Never log the service token
@@ -109,7 +119,7 @@ Create a centralized Backend API client (backendClient.ts) that handles all comm
 ---
 
 ## Task 3: Authorization Middleware
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Small
 
@@ -117,20 +127,30 @@ Create a centralized Backend API client (backendClient.ts) that handles all comm
 Implement authorization middleware that checks user permissions with the Backend before executing any command. Extract the Telegram user ID from the context, send it to Backend API for authorization verification, and block unauthorized users with an Arabic error message. Attach this middleware to all protected commands. Ensure the middleware is efficient and doesn't block the event loop.
 
 ### Deliverables
-- [ ] Authorization middleware in middlewares/auth.ts
-- [ ] Telegram user ID extraction from context
-- [ ] Backend authorization API call
-- [ ] Unauthorized user error message (Arabic)
-- [ ] Middleware registration on bot instance
-- [ ] Error handling for Backend API failures
+- [✅] Authorization middleware in middlewares/auth.ts
+- [✅] Telegram user ID extraction from context
+- [✅] Backend authorization API call
+- [✅] Unauthorized user error message (Arabic)
+- [✅] Middleware registration on bot instance
+- [✅] Error handling for Backend API failures
+- [✅] Skip authorization for /start command
 
 ### Acceptance Criteria
-- Middleware extracts correct Telegram user ID
-- Authorization check calls Backend API
-- Unauthorized users receive Arabic error message
-- Authorized users proceed to command handler
-- Backend API failures handled gracefully
-- Middleware doesn't block other users' requests
+- Middleware extracts correct Telegram user ID ✅
+- Authorization check calls Backend API ✅
+- Unauthorized users receive Arabic error message ✅
+- Authorized users proceed to command handler ✅
+- Backend API failures handled gracefully ✅
+- Middleware doesn't block other users' requests ✅
+- /start command bypasses authorization ✅
+
+### Implementation Notes
+- ✅ Error message: "عذراً، لا تملك صلاحية استخدام هذا البوت."
+- ✅ Registered globally in index.ts with `bot.use(authMiddleware)`
+- ✅ Skips /start command to allow new users to see welcome
+- ✅ Logs authorization errors for security audit
+- ✅ Returns early if no user ID (anonymous messages)
+- ✅ Shows backend error message if API fails
 
 ### Notes
 - Error message: "عذراً، لا تملك صلاحية استخدام هذا البوت."
