@@ -6,6 +6,7 @@ import arEG from 'antd/locale/ar_EG';
 import { ReactNode, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import './globals.css';
 
@@ -44,11 +45,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <body>
-        <QueryClientProvider client={queryClient}>
-          <ConfigProvider direction="rtl" locale={arEG}>
-            <AppContent>{children}</AppContent>
-          </ConfigProvider>
-        </QueryClientProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <ConfigProvider direction="rtl" locale={arEG}>
+              <AppContent>{children}</AppContent>
+            </ConfigProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, Statistic, Row, Col, Table, Typography, Input, Select, Space, Empty } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Card, Statistic, Row, Col, Table, Typography, Input, Select, Space, Empty, Alert, Button } from 'antd';
+import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useMyTransfers, useMyStats } from '@/hooks/useTransfers';
 import StatusTag from '@/components/StatusTag';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -16,8 +16,8 @@ function AdminTransfersContent() {
   const [status, setStatus] = useState<string | undefined>(undefined);
   const [searchPhone, setSearchPhone] = useState<string | undefined>(undefined);
 
-  const { data: stats, isLoading: statsLoading } = useMyStats();
-  const { data: transfersData, isLoading: transfersLoading } = useMyTransfers({
+  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useMyStats();
+  const { data: transfersData, isLoading: transfersLoading, isError: transfersError, refetch: refetchTransfers } = useMyTransfers({
     page,
     limit,
     status,
@@ -92,6 +92,23 @@ function AdminTransfersContent() {
     <div>
       <Title level={2}>تحويلاتي الشخصية</Title>
 
+      {/* Error Alert for Statistics */}
+      {statsError && (
+        <Alert
+          message="خطأ في تحميل الإحصائيات"
+          description="حدث خطأ أثناء تحميل الإحصائيات. يرجى المحاولة مرة أخرى."
+          type="error"
+          showIcon
+          closable
+          action={
+            <Button size="small" onClick={() => refetchStats()}>
+              إعادة المحاولة
+            </Button>
+          }
+          className="mb-4"
+        />
+      )}
+
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} md={6}>
@@ -134,6 +151,23 @@ function AdminTransfersContent() {
 
       {/* Transfers Table */}
       <Card>
+        {/* Error Alert for Transfers */}
+        {transfersError && (
+          <Alert
+            message="خطأ في تحميل التحويلات"
+            description="حدث خطأ أثناء تحميل التحويلات. يرجى المحاولة مرة أخرى."
+            type="error"
+            showIcon
+            closable
+            action={
+              <Button size="small" icon={<ReloadOutlined />} onClick={() => refetchTransfers()}>
+                إعادة المحاولة
+              </Button>
+            }
+            className="mb-4"
+          />
+        )}
+
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {/* Filters */}
           <Row gutter={16}>

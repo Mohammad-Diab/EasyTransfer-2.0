@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Layout, Menu, Button, Drawer, Typography } from 'antd';
+import { Layout, Menu, Button, Drawer, Typography, Modal } from 'antd';
 import {
   MenuOutlined,
   SwapOutlined,
   DashboardOutlined,
   LogoutOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -57,8 +58,18 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    logout();
-    setMobileMenuOpen(false);
+    Modal.confirm({
+      title: 'تسجيل الخروج',
+      icon: <ExclamationCircleOutlined />,
+      content: 'هل أنت متأكد من أنك تريد تسجيل الخروج؟',
+      okText: 'نعم، تسجيل الخروج',
+      cancelText: 'إلغاء',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        logout();
+        setMobileMenuOpen(false);
+      },
+    });
   };
 
   const selectedKeys = [pathname];

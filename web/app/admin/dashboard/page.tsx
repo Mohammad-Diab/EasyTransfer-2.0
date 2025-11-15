@@ -15,12 +15,14 @@ import {
   Switch,
   Empty,
   message,
+  Alert,
 } from 'antd';
 import { 
   SearchOutlined, 
   UserAddOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons';
 import { useSystemStats, useAllUsers } from '@/hooks/useTransfers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -36,8 +38,8 @@ function DashboardContent() {
   const [search, setSearch] = useState<string | undefined>(undefined);
 
   const queryClient = useQueryClient();
-  const { data: stats, isLoading: statsLoading } = useSystemStats();
-  const { data: usersData, isLoading: usersLoading } = useAllUsers({ page, limit, search });
+  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useSystemStats();
+  const { data: usersData, isLoading: usersLoading, isError: usersError, refetch: refetchUsers } = useAllUsers({ page, limit, search });
 
   // Toggle user status mutation
   const toggleStatusMutation = useMutation({
@@ -167,6 +169,23 @@ function DashboardContent() {
         <Title level={2}>لوحة النظام</Title>
       </div>
 
+      {/* Error Alert for Statistics */}
+      {statsError && (
+        <Alert
+          message="خطأ في تحميل الإحصائيات"
+          description="حدث خطأ أثناء تحميل إحصائيات النظام. يرجى المحاولة مرة أخرى."
+          type="error"
+          showIcon
+          closable
+          action={
+            <Button size="small" onClick={() => refetchStats()}>
+              إعادة المحاولة
+            </Button>
+          }
+          className="mb-4"
+        />
+      )}
+
       {/* System-wide Statistics */}
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} md={6}>
@@ -215,6 +234,23 @@ function DashboardContent() {
           </div>
         }
       >
+        {/* Error Alert for Users */}
+        {usersError && (
+          <Alert
+            message="خطأ في تحميل المستخدمين"
+            description="حدث خطأ أثناء تحميل قائمة المستخدمين. يرجى المحاولة مرة أخرى."
+            type="error"
+            showIcon
+            closable
+            action={
+              <Button size="small" icon={<ReloadOutlined />} onClick={() => refetchUsers()}>
+                إعادة المحاولة
+              </Button>
+            }
+            className="mb-4"
+          />
+        )}
+
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {/* Search */}
           <Row gutter={16}>
