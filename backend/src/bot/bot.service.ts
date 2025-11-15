@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { TransfersService } from '../transfers/transfers.service';
 
 @Injectable()
 export class BotService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private transfersService: TransfersService,
+  ) {}
 
   async authorizeUser(telegramUserId: number) {
     const user = await this.prisma.user.findUnique({
@@ -17,12 +21,16 @@ export class BotService {
   }
 
   async submitTransfer(telegramUserId: number, phone: string, amount: number) {
-    // Implementation will include business rules validation
-    // - Check if user is authorized
-    // - Apply 5-minute rule
-    // - Apply 20-second rule
-    // - Detect operator
-    // - Create transfer request
-    return { success: true };
+    // Get user from telegram_user_id
+    const user = await this.prisma.user.findUnique({
+      where: { telegram_user_id: telegramUserId },
+    });
+
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+    }
+
+    // Use TransfersService to create transfer with all business rules
+    return this.transfersService.createTransfer(user.id, phone, amount);
   }
 }
