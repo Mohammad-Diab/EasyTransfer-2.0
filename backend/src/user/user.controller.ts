@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { TransfersService } from '../transfers/transfers.service';
 
 @Controller('api/me')
-// @UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class UserController {
   constructor(private transfersService: TransfersService) {}
 

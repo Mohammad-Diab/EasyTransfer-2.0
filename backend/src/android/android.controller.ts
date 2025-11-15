@@ -16,7 +16,7 @@ import { OperatorsService } from '../operators/operators.service';
 import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Controller('api/android')
-// @UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class AndroidController {
   constructor(
     private transfersService: TransfersService,

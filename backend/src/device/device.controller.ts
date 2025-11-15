@@ -20,7 +20,7 @@ export class DeviceController {
    * GET /api/devices
    * Get current user's device history
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   async getMyDevices(@Request() req) {
     const userId = req.user?.sub || 1; // Temporary for development
@@ -31,7 +31,7 @@ export class DeviceController {
    * GET /api/devices/active
    * Get current user's active device
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('active')
   async getActiveDevice(@Request() req) {
     const userId = req.user?.sub || 1; // Temporary for development
@@ -43,7 +43,7 @@ export class DeviceController {
    * GET /api/devices/stats
    * Get device statistics for current user
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('stats')
   async getMyDeviceStats(@Request() req) {
     const userId = req.user?.sub || 1; // Temporary for development
@@ -54,7 +54,7 @@ export class DeviceController {
    * DELETE /api/devices/:deviceId
    * Revoke a device (user can revoke their own device)
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':deviceId')
   @HttpCode(HttpStatus.OK)
   async revokeMyDevice(@Param('deviceId') deviceId: string, @Request() req) {
@@ -67,7 +67,7 @@ export class DeviceController {
    * GET /api/devices/user/:userId
    * Admin: Get all devices for a specific user
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('user/:userId')
   async getUserDevices(@Param('userId') userId: string, @Request() req) {
     const adminUserId = req.user?.sub || 1; // Temporary for development
@@ -78,7 +78,7 @@ export class DeviceController {
    * DELETE /api/devices/admin/:deviceId
    * Admin: Revoke any device
    */
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Delete('admin/:deviceId')
   @HttpCode(HttpStatus.OK)
   async adminRevokeDevice(@Param('deviceId') deviceId: string) {

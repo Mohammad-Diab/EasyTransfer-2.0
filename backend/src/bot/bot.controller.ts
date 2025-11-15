@@ -4,7 +4,7 @@ import { BotService } from './bot.service';
 import { CreateTransferDto } from '../transfers/dto/create-transfer.dto';
 
 @Controller('api/bot')
-// @UseGuards(AuthGuard('bot-token'))
+@UseGuards(AuthGuard('bot-token'))
 export class BotController {
   constructor(private botService: BotService) {}
 

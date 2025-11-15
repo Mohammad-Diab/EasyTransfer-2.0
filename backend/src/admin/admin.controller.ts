@@ -4,7 +4,7 @@ import { AdminService } from './admin.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('api/admin')
-// @UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'))
 export class AdminController {
   constructor(private adminService: AdminService) {}
 

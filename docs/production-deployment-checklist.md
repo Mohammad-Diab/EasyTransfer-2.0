@@ -7,8 +7,8 @@
 # 2. Backend Tasks
 [✅] Implement Telegram OTP delivery (replace DEV mock)
 [✅] Implement bot notification system (transfer results)
-[ ] Uncomment authentication guards - NEXT TASK
-[ ] Set DATABASE_PROVIDER=postgresql
+[✅] Uncomment authentication guards
+[ ] Set DATABASE_PROVIDER=postgresql - NEXT (Deployment)
 [ ] Run database migrations on production
 [ ] Seed initial data (operators, admin user)
 

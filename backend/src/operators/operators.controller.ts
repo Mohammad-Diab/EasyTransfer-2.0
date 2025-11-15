@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Delete, 
+  Body, 
+  Param, 
+  HttpCode, 
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { OperatorsService } from './operators.service';
 
 @Controller('api/operators')
@@ -46,9 +57,8 @@ export class OperatorsController {
   /**
    * POST /api/operators/rules
    * Admin: Add new operator message rule
-   * TODO: Add admin guard when authentication is enabled
    */
-  // @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('rules')
   @HttpCode(HttpStatus.CREATED)
   async addRule(
@@ -69,9 +79,8 @@ export class OperatorsController {
   /**
    * DELETE /api/operators/rules/:id
    * Admin: Delete operator message rule
-   * TODO: Add admin guard when authentication is enabled
    */
-  // @UseGuards(AuthGuard('jwt'), AdminGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Delete('rules/:id')
   @HttpCode(HttpStatus.OK)
   async deleteRule(@Param('id') id: string) {
