@@ -12,11 +12,15 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransfersService } from '../transfers/transfers.service';
+import { OperatorsService } from '../operators/operators.service';
 
 @Controller('api/android')
 // @UseGuards(AuthGuard('jwt'))
 export class AndroidController {
-  constructor(private transfersService: TransfersService) {}
+  constructor(
+    private transfersService: TransfersService,
+    private operatorsService: OperatorsService,
+  ) {}
 
   /**
    * GET /api/android/requests/next
@@ -66,6 +70,26 @@ export class AndroidController {
       transfer_id: transferId,
       status: body.status,
     };
+  }
+
+  /**
+   * GET /api/android/rules
+   * Get operator message rules for USSD response parsing
+   * Android calls this on startup
+   */
+  @Get('rules')
+  async getRules() {
+    return this.operatorsService.getOperatorRules();
+  }
+
+  /**
+   * GET /api/android/rules/last-updated
+   * Check if rules have been updated since last fetch
+   * Returns timestamp only for efficient cache checking
+   */
+  @Get('rules/last-updated')
+  async getRulesLastUpdated() {
+    return this.operatorsService.getRulesLastUpdated();
   }
 
   /**

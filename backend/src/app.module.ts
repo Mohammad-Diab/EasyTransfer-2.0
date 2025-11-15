@@ -9,6 +9,7 @@ import { AndroidModule } from './android/android.module';
 import { UserModule } from './user/user.module';
 import { AdminModule } from './admin/admin.module';
 import { TransfersModule } from './transfers/transfers.module';
+import { OperatorsModule } from './operators/operators.module';
 import { TasksModule } from './tasks/tasks.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { TasksModule } from './tasks/tasks.module';
     UserModule,
     AdminModule,
     TransfersModule,
+    OperatorsModule,
     TasksModule,
   ],
 })
