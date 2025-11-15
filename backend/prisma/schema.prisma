@@ -1,0 +1,151 @@
+// Prisma Schema for EasyTransfer 2.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Change to "sqlite" for development
+  url      = env("DATABASE_URL")
+}
+
+// 1. Users Table
+model User {
+  id              Int      @id @default(autoincrement())
+  phone           String   @unique
+  name            String?
+  telegram_user_id Int?    @unique
+  role            UserRole @default(USER)
+  status          UserStatus @default(active)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  devices         Device[]
+  transfer_requests TransferRequest[]
+  otp_codes       OtpCode[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  DEVICE
+}
+
+enum UserStatus {
+  active
+  inactive
+}
+
+// 2. Devices Table
+model Device {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  device_id       String   @unique
+  device_name     String?
+  status          DeviceStatus @default(active)
+  last_active     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+enum DeviceStatus {
+  active
+  revoked
+}
+
+// 3. Operator Prefixes Table
+model OperatorPrefix {
+  id              Int      @id @default(autoincrement())
+  operator_code   String
+  prefix          String   @unique
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+
+  @@map("operator_prefixes")
+}
+
+// 4. Operator Message Rules Table
+model OperatorMessageRule {
+  id              Int      @id @default(autoincrement())
+  operator_code   String
+  pattern         String
+  result_status   String
+  created_at      DateTime @default(now())
+
+  @@map("operator_message_rules")
+}
+
+// 5. Transfer Requests Table
+model TransferRequest {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  recipient_phone String
+  amount          Int
+  operator_code   String?
+  status          TransferStatus @default(pending)
+  execute_after   DateTime @default(now())
+  executed_at     DateTime?
+  carrier_response String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("transfer_requests")
+}
+
+enum TransferStatus {
+  pending
+  delayed
+  processing
+  success
+  failed
+}
+
+// 6. OTP Codes Table
+model OtpCode {
+  id              Int      @id @default(autoincrement())
+  user_id         Int
+  code            String
+  purpose         OtpPurpose
+  expires_at      DateTime
+  used_at         DateTime?
+  created_at      DateTime @default(now())
+
+  // Relations
+  user            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+}
+
+enum OtpPurpose {
+  web_login
+  android_login
+}
+
+// 7. System Logs Table (Optional)
+model SystemLog {
+  id              Int      @id @default(autoincrement())
+  level           LogLevel
+  action          String
+  details         String?
+  user_id         Int?
+  created_at      DateTime @default(now())
+
+  @@map("system_logs")
+}
+
+enum LogLevel {
+  info
+  warning
+  error
+}

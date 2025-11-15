@@ -1,0 +1,68 @@
+{
+  "folders": [
+    {
+      "name": "📚 Documentation",
+      "path": "."
+    },
+    {
+      "name": "🔧 Backend (NestJS)",
+      "path": "./backend"
+    },
+    {
+      "name": "🤖 Bot (grammY)",
+      "path": "./bot"
+    },
+    {
+      "name": "🌐 Web (Next.js)",
+      "path": "./web"
+    },
+    {
+      "name": "📱 Android (Kotlin)",
+      "path": "./android"
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[kotlin]": {
+      "editor.defaultFormatter": "fwcd.kotlin"
+    },
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/dist": true,
+      "**/build": true,
+      "**/.gradle": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/dist": true,
+      "**/build": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "bradlc.vscode-tailwindcss",
+      "prisma.prisma",
+      "fwcd.kotlin",
+      "vscjava.vscode-java-pack"
+    ]
+  }
+}

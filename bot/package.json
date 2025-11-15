@@ -1,0 +1,27 @@
+{
+  "name": "easytransfer-bot",
+  "version": "1.0.0",
+  "description": "EasyTransfer 2.0 Telegram Bot - grammY",
+  "author": "Mohammad Diab",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "lint": "eslint src/**/*.ts --fix"
+  },
+  "dependencies": {
+    "grammy": "^1.20.0",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1"
+  }
+}
