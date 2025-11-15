@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
-import { Bot } from 'grammy';
+import { Bot, webhookCallback } from 'grammy';
 import { config } from '../config/env';
 import { MESSAGES } from '../config/messages';
 import type { MyContext } from '../index';
@@ -123,10 +123,16 @@ export function startInternalServer(bot: Bot<MyContext>) {
   // Store bot instance globally for endpoint access
   (global as any).botInstance = bot;
 
+  // Webhook endpoint for Telegram (only in webhook mode)
+  if (config.botMode === 'webhook') {
+    app.post('/bot/webhook', webhookCallback(bot, 'express'));
+    logger.info('Webhook endpoint registered', { path: '/bot/webhook' });
+  }
+
   app.listen(config.internalPort, () => {
     logger.info('Internal server started', {
       port: config.internalPort,
-      endpoints: ['/internal/notify-result', '/internal/send-otp'],
+      endpoints: ['/internal/notify-result', '/internal/send-otp', '/bot/webhook'],
     });
   });
 }
