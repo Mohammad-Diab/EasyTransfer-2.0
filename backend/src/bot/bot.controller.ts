@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { BotService } from './bot.service';
 
 @Controller('api/bot')
-@UseGuards(AuthGuard('bot-token'))
+// @UseGuards(AuthGuard('bot-token'))
 export class BotController {
   constructor(private botService: BotService) {}
 

@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { AndroidService } from './android.service';
 
 @Controller('api/android')
-@UseGuards(AuthGuard('jwt'))
+// @UseGuards(AuthGuard('jwt'))
 export class AndroidController {
   constructor(private androidService: AndroidService) {}
 
