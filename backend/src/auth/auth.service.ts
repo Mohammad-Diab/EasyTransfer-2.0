@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { BotClientService } from '../bot/bot-client.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private config: ConfigService,
+    private botClient: BotClientService,
   ) {}
 
   /**
@@ -46,8 +48,10 @@ export class AuthService {
       },
     });
 
-    // TODO: Send OTP via Telegram bot
-    return { message: 'OTP sent to Telegram', code }; // DEV: Remove code in production
+    // Send OTP via Telegram bot
+    await this.botClient.sendOtp(user.telegram_user_id.toString(), code);
+
+    return { message: 'OTP sent to Telegram' };
   }
 
   /**
@@ -106,7 +110,10 @@ export class AuthService {
       },
     });
 
-    return { message: 'OTP sent to Telegram', code }; // DEV ONLY
+    // Send OTP via Telegram bot
+    await this.botClient.sendOtp(user.telegram_user_id.toString(), code);
+
+    return { message: 'OTP sent to Telegram' };
   }
 
   /**

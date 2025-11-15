@@ -6,10 +6,12 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { BotTokenStrategy } from './strategies/bot-token.strategy';
+import { BotModule } from '../bot/bot.module';
 
 @Module({
   imports: [
     PassportModule,
+    BotModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
