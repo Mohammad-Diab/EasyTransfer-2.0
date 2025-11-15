@@ -245,7 +245,7 @@ Conversation<MyContext, MyContext>
 ---
 
 ## Task 5: /start Command & Welcome Message
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Medium  
 **Estimated Effort**: Small
 
@@ -253,21 +253,60 @@ Conversation<MyContext, MyContext>
 Implement the /start command to welcome new users and provide basic bot usage instructions in Arabic. Display available commands and brief descriptions. Keep the message simple and user-friendly. Optionally integrate with authorization middleware to only show instructions to authorized users.
 
 ### Deliverables
-- [ ] /start command handler in commands/start.ts
-- [ ] Welcome message in Arabic
-- [ ] Usage instructions for /send command
-- [ ] Optional: Authorization check before showing instructions
+- ✅ /start command handler in commands/start.ts
+- ✅ Welcome message in Arabic
+- ✅ Usage instructions for /send command
+- ✅ Updated to use MyContext type
+- ✅ Message stored in config/messages.ts
 
 ### Acceptance Criteria
-- /start displays welcome message in Arabic
-- Instructions explain how to use /send
-- Message is clear and concise
-- Unauthorized users receive authorization error (if middleware applied)
+- ✅ /start displays welcome message in Arabic
+- ✅ Instructions explain both interactive and shortcut modes
+- ✅ Message is clear and concise with examples
+- ✅ Uses Markdown formatting for better readability
+- ✅ Bypasses authorization (handled by middleware)
+
+### Implementation Details
+
+**Welcome Message:**
+```
+مرحباً بك في EasyTransfer 2.0! 👋
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+
+📱 *الطريقة التفاعلية:*
+/send
+ثم أدخل رقم الهاتف والمبلغ خطوة بخطوة
+
+⚡ *الطريقة السريعة:*
+/send <المبلغ> <رقم الهاتف>
+
+*مثال:*
+/send 1000 0912345678
+
+للمساعدة: /help
+```
+
+**Files Modified:**
+1. **config/messages.ts**: Added MESSAGES.WELCOME constant
+2. **commands/start.ts**: 
+   - Updated to use `MyContext` type
+   - Uses `MESSAGES.WELCOME` from config
+   - Sends with Markdown parse mode
+   - Simplified to single line: `ctx.reply(MESSAGES.WELCOME, { parse_mode: 'Markdown' })`
+
+**Features:**
+- Explains both interactive and shortcut send modes
+- Includes practical example
+- Mentions /help for future support
+- Uses emoji for visual appeal
+- Markdown formatting for emphasis
 
 ### Notes
-- Keep welcome message short and friendly
-- Consider showing examples: /send 50 0912345678
-- Store message template in config/messages.ts
+- /start bypasses authorization via middleware check
+- Welcome message stored centrally in config/messages.ts
+- Message includes both send modes (interactive & shortcut)
+- Future: Add /help command for detailed instructions
 
 ---
 

@@ -1,18 +1,7 @@
-import { CommandContext, Context } from 'grammy';
+import { CommandContext } from 'grammy';
+import { MESSAGES } from '../config/messages';
+import type { MyContext } from '../index';
 
-export async function startCommand(ctx: CommandContext<Context>) {
-  const welcomeMessage = `
-مرحباً بك في EasyTransfer 2.0! 👋
-
-لإرسال تحويل، استخدم الأمر:
-/send
-
-أو استخدم الاختصار:
-/send <amount> <phone>
-
-مثال:
-/send 1000 0912345678
-  `.trim();
-
-  await ctx.reply(welcomeMessage);
+export async function startCommand(ctx: CommandContext<MyContext>) {
+  await ctx.reply(MESSAGES.WELCOME, { parse_mode: 'Markdown' });
 }
