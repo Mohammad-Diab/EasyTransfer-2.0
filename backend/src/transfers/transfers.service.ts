@@ -243,12 +243,16 @@ export class TransfersService {
     page: number = 1,
     limit: number = 20,
     status?: string,
+    searchPhone?: string,
   ) {
     const skip = (page - 1) * limit;
 
     const where: any = { user_id: userId };
     if (status) {
       where.status = status;
+    }
+    if (searchPhone) {
+      where.recipient_phone = { contains: searchPhone };
     }
 
     const [transfers, total] = await Promise.all([
