@@ -3,10 +3,11 @@
 import { Card, Statistic, Row, Col, Table, Typography } from 'antd';
 import { useMyTransfers, useMyStats } from '@/hooks/useTransfers';
 import { STATUS_CONFIG } from '@/lib/statusConfig';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const { Title } = Typography;
 
-export default function TransfersPage() {
+function TransfersContent() {
   const { data: stats, isLoading: statsLoading } = useMyStats();
   const { data: transfers, isLoading: transfersLoading } = useMyTransfers();
 
@@ -85,5 +86,13 @@ export default function TransfersPage() {
         />
       </Card>
     </div>
+  );
+}
+
+export default function TransfersPage() {
+  return (
+    <ProtectedRoute>
+      <TransfersContent />
+    </ProtectedRoute>
   );
 }

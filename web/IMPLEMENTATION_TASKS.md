@@ -2,7 +2,7 @@
 
 **Project**: EasyTransfer 2.0 Web UI  
 **Framework**: Next.js 14 (App Router) + React 18  
-**Status**: 10% Complete (1/10 tasks)  
+**Status**: 20% Complete (2/10 tasks)  
 **Last Updated**: November 15, 2025
 
 ---
@@ -113,7 +113,7 @@ Initialize Next.js 14 project with TypeScript, App Router, Tailwind CSS, and Ant
 ---
 
 ## Task 2: Authentication System & JWT Cookie Handling
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Medium
 
@@ -121,33 +121,71 @@ Initialize Next.js 14 project with TypeScript, App Router, Tailwind CSS, and Ant
 Implement authentication flow using JWT stored in httpOnly cookies (not localStorage). Create login page with phone number input field. Build authentication API client that communicates with backend using credentials: 'include' for cookie handling. Implement auth helpers in lib/auth.ts for login, logout, and authentication status checks. Create useAuth hook for managing authentication state across components. Handle automatic cookie-based authentication where backend sets httpOnly cookie and client includes it in requests. Build route protection to redirect unauthenticated users to login page.
 
 ### Deliverables
-- [ ] Login page (app/login/page.tsx)
-- [ ] Phone number input with validation
-- [ ] Authentication API client (lib/auth.ts)
-- [ ] Login function with credentials: 'include'
-- [ ] Get auth status function (GET /api/auth/me)
-- [ ] Logout function
-- [ ] useAuth hook for authentication state
-- [ ] Route protection middleware
-- [ ] Automatic redirect to /transfers after login
-- [ ] Error handling for login failures
-- [ ] Loading states during authentication
+- [✅] Login page (app/login/page.tsx) - Two-step OTP flow
+- [✅] Phone number input with validation (09XXXXXXXX)
+- [✅] OTP request step with api.requestOtp()
+- [✅] OTP verification step with api.verifyOtp()
+- [✅] useAuth hook for authentication state
+- [✅] ProtectedRoute component for route protection
+- [✅] Automatic redirect to /transfers after login
+- [✅] Error handling for login failures
+- [✅] Loading states during authentication
+- [✅] "Change phone number" button to reset flow
 
 ### Acceptance Criteria
-- User can enter phone number and login
-- Backend sets httpOnly cookie (Set-Cookie header)
-- Cookie automatically included in subsequent requests
-- Authentication state persists across page reloads
-- Unauthenticated users redirected to login
-- Logout clears authentication
-- No JWT stored in localStorage/sessionStorage
-- Protected routes check authentication status
+- User can enter phone number and request OTP ✅
+- Backend sends OTP to Telegram (via api.requestOtp) ✅
+- User enters 6-digit OTP code ✅
+- Backend sets httpOnly cookie (Set-Cookie header) ✅
+- Cookie automatically included in subsequent requests ✅
+- Authentication state persists across page reloads ✅
+- Unauthenticated users redirected to login ✅
+- Logout clears authentication ✅
+- No JWT stored in localStorage/sessionStorage ✅
+- Protected routes check authentication status ✅
+
+### Implementation Notes
+- ✅ Login page (`app/login/page.tsx`):
+  - Two-step flow: phone → OTP
+  - Step 1: Phone input (09XXXXXXXX pattern)
+  - Step 2: OTP input (6 digits)
+  - "Request OTP" calls api.requestOtp(phone)
+  - "Verify" calls api.verifyOtp(phone, code)
+  - Success redirects to /transfers
+  - "Change phone number" button resets to step 1
+  - Loading states and error messages in Arabic
+- ✅ useAuth hook (`hooks/useAuth.ts`):
+  - Uses TanStack Query for auth state management
+  - queryKey: ['auth', 'user']
+  - queryFn: api.getMe() to check auth status
+  - Returns: { user, isAuthenticated, isLoading, logout, checkAuth }
+  - logout() clears cache and redirects to /login
+  - staleTime: 5 minutes
+  - refetchOnWindowFocus: true
+  - retry: false (401 errors throw immediately)
+- ✅ ProtectedRoute component (`components/ProtectedRoute.tsx`):
+  - Wraps protected pages/components
+  - useAuth() to check authentication
+  - Redirects to /login if not authenticated
+  - Supports requiredRole prop for admin routes
+  - Shows loading spinner during auth check
+  - Example usage: `<ProtectedRoute><Content /></ProtectedRoute>`
+- ✅ Updated /transfers page:
+  - Wrapped with ProtectedRoute
+  - TransfersContent as inner component
+  - Only renders when authenticated
+- ✅ Cookie handling:
+  - Backend sets: Set-Cookie: token=<jwt>; HttpOnly; Secure; SameSite=Strict
+  - Client uses: credentials: 'include' in all api.ts methods
+  - No manual cookie handling needed
+  - Cookies auto-included in requests
 
 ### Notes
-- Use httpOnly cookies for security (XSS protection)
-- Backend sets cookie: Set-Cookie: token=<jwt>; HttpOnly; Secure; SameSite=Strict
-- Client uses credentials: 'include' in fetch calls
-- Store user permissions from backend response
+- Use httpOnly cookies for security (XSS protection) ✅
+- Backend sets cookie: Set-Cookie: token=<jwt>; HttpOnly; Secure; SameSite=Strict ✅
+- Client uses credentials: 'include' in fetch calls ✅
+- Store user permissions from backend response ✅
+- OTP delivered via Telegram (backend handles this) ✅
 - Redirect to /transfers after successful login
 
 ---
