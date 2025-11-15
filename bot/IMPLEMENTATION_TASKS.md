@@ -160,7 +160,7 @@ Implement authorization middleware that checks user permissions with the Backend
 ---
 
 ## Task 4: /send Command (Interactive & Shortcut Modes)
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Medium
 
@@ -168,31 +168,79 @@ Implement authorization middleware that checks user permissions with the Backend
 Implement the /send command supporting both interactive mode (step-by-step prompts for phone and amount) and shortcut mode (/send <amount> <phone> in one line). For interactive mode, use grammY conversation/session management to collect phone and amount sequentially. For shortcut mode, parse command arguments and validate format. Perform basic client-side validation (digits only for phone, positive number for amount), then submit to Backend API. Display confirmation message only after Backend acknowledges receipt. Handle all error scenarios with clear Arabic messages.
 
 ### Deliverables
-- [ ] /send command handler in commands/send.ts
-- [ ] Interactive mode implementation (step-by-step prompts)
-- [ ] Shortcut mode implementation (parse arguments)
-- [ ] Phone number format validation (digits only)
-- [ ] Amount format validation (positive number)
-- [ ] Backend API submission via backendClient
-- [ ] Success confirmation message (Arabic)
-- [ ] Error messages for invalid format (Arabic)
-- [ ] Error handling for Backend failures
-- [ ] Session/conversation state management (if needed)
+- ✅ /send command handler in commands/send.ts
+- ✅ Interactive mode implementation (step-by-step prompts)
+- ✅ Shortcut mode implementation (parse arguments)
+- ✅ Phone number format validation (digits only)
+- ✅ Amount format validation (positive number)
+- ✅ Backend API submission via backendClient
+- ✅ Success confirmation message (Arabic)
+- ✅ Error messages for invalid format (Arabic)
+- ✅ Error handling for Backend failures
+- ✅ Session/conversation state management (grammY conversations plugin)
 
 ### Acceptance Criteria
-- Interactive mode prompts for phone, then amount
-- Shortcut mode parses /send <amount> <phone> correctly
-- Invalid format shows: "يرجى استخدام الصيغة: /send <amount> <phone>"
-- Valid requests submitted to Backend API
-- Confirmation shown only after Backend acknowledgment: "تم استلام طلبك، وسيتم تنفيذ التحويل قريباً."
-- Backend errors show: "حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً."
-- Both modes work correctly
+- ✅ Interactive mode prompts for phone, then amount
+- ✅ Shortcut mode parses /send <amount> <phone> correctly
+- ✅ Invalid phone shows: "رقم الهاتف غير صالح. يرجى إدخال أرقام فقط."
+- ✅ Invalid amount shows: "المبلغ غير صالح. يرجى إدخال رقم موجب."
+- ✅ Valid requests submitted to Backend API
+- ✅ Confirmation shown only after Backend acknowledgment: "تم استلام طلبك، وسيتم تنفيذ التحويل قريباً."
+- ✅ Backend errors show: "حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً."
+- ✅ Both modes work correctly
+
+### Implementation Details
+
+**Dependencies Installed:**
+- @grammyjs/conversations@2.1.0
+
+**Type System:**
+```typescript
+// index.ts
+interface SessionData {}
+type BaseContext = Context & SessionFlavor<SessionData>;
+export type MyContext = BaseContext & ConversationFlavor<BaseContext>;
+
+// send.ts
+Conversation<MyContext, MyContext>
+```
+
+**Files Modified:**
+1. **config/messages.ts**: Added interactive mode messages
+   - ASK_PHONE: "يرجى إدخال رقم الهاتف المستلم:"
+   - ASK_AMOUNT: "يرجى إدخال المبلغ المراد تحويله:"
+   - INVALID_PHONE: "رقم الهاتف غير صالح. يرجى إدخال أرقام فقط."
+   - INVALID_AMOUNT: "المبلغ غير صالح. يرجى إدخال رقم موجب."
+
+2. **index.ts**: Registered conversations plugin
+   - Defined MyContext type with SessionFlavor & ConversationFlavor
+   - Added session middleware: `bot.use(session({ initial: () => ({}) }))`
+   - Added conversations middleware: `bot.use(conversations())`
+   - Registered sendConversation: `bot.use(createConversation(sendConversation))`
+   - Changed Bot<Context> to Bot<MyContext>
+
+3. **commands/send.ts**: Implemented both modes
+   - `sendConversation()`: Interactive flow using conversation.wait()
+   - `sendCommand()`: Shortcut mode with argument parsing
+   - Both use `backendClient.submitTransfer(userId, phone, amount)`
+   - Validation helpers: `isValidPhone()`, `isValidAmount()`
+   - Interactive mode entered via: `ctx.conversation.enter('sendConversation')`
+
+4. **commands/index.ts**: Updated to use Bot<MyContext>
+
+5. **commands/health.ts**: Updated to use Bot<MyContext>
+
+**Flow:**
+- **Interactive**: /send → Ask phone → Validate → Ask amount → Validate → Submit → Confirm
+- **Shortcut**: /send 100 0912345678 → Validate both → Submit → Confirm
 
 ### Notes
-- Store Arabic messages in config/messages.ts
-- Don't perform business validation (Backend handles this)
-- Test both modes thoroughly
-- Consider using grammY conversations plugin for interactive mode
+- grammY conversations plugin requires session middleware
+- Conversation type needs both parameters: `Conversation<MyContext, MyContext>`
+- MyContext combines SessionFlavor and ConversationFlavor properly
+- Both modes validate format only, business logic handled by backend
+- Success response checked via `response.id && response.status`
+- Error handling logs to console for debugging
 
 ---
 

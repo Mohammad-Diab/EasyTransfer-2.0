@@ -1,11 +1,29 @@
-import { Bot } from 'grammy';
+import { Bot, Context, session, type SessionFlavor } from 'grammy';
+import { conversations, createConversation, type ConversationFlavor } from '@grammyjs/conversations';
 import { config } from './config/env';
 import { setupCommands } from './commands';
 import { authMiddleware } from './middlewares/auth';
+import { sendConversation } from './commands/send';
 
-const bot = new Bot(config.botToken);
+// Session data structure (empty for now)
+interface SessionData {}
 
-// Apply middleware
+// Define bot context type with session and conversation support  
+type BaseContext = Context & SessionFlavor<SessionData>;
+export type MyContext = BaseContext & ConversationFlavor<BaseContext>;
+
+const bot = new Bot<MyContext>(config.botToken);
+
+// Session middleware (required for conversations)
+bot.use(session({ initial: () => ({}) }));
+
+// Conversations middleware
+bot.use(conversations());
+
+// Register conversations
+bot.use(createConversation(sendConversation));
+
+// Apply authorization middleware
 bot.use(authMiddleware);
 
 // Setup commands

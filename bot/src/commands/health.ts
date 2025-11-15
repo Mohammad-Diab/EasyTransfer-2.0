@@ -1,7 +1,8 @@
 import { Bot } from 'grammy';
 import { config } from '../config/env';
+import type { MyContext } from '../index';
 
-export function healthCommand(bot: Bot) {
+export function healthCommand(bot: Bot<MyContext>) {
   bot.command('health', async (ctx) => {
     const botInfo = await ctx.api.getMe();
     const status = {
