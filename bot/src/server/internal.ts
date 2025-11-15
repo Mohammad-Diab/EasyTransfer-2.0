@@ -101,7 +101,20 @@ app.post('/internal/send-otp', async (req: Request, res: Response) => {
 
     // Send OTP to user (NEVER log the code)
     const message = MESSAGES.OTP_CODE(code);
-    await bot.api.sendMessage(telegram_user_id, message);
+    const sentMessage = await bot.api.sendMessage(telegram_user_id, message, {
+      parse_mode: 'HTML',
+    });
+
+    // Auto-delete OTP message after 5 minutes for security
+    setTimeout(async () => {
+      try {
+        await bot.api.deleteMessage(telegram_user_id, sentMessage.message_id);
+        logger.info(`OTP message deleted for user ${telegram_user_id}`);
+      } catch (error) {
+        // Message might already be deleted by user - not critical
+        logger.info(`Could not delete OTP message for user ${telegram_user_id} (may be already deleted)`);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
 
     logger.notificationSent('otp', telegram_user_id);
     // IMPORTANT: Do NOT log the actual code
