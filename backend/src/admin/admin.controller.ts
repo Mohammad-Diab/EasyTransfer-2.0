@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Query, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
 
@@ -7,18 +7,80 @@ import { AdminService } from './admin.service';
 export class AdminController {
   constructor(private adminService: AdminService) {}
 
+  // System-wide statistics
   @Get('dashboard/stats')
   async getSystemStats() {
     return this.adminService.getSystemStats();
   }
 
+  // User management endpoints
   @Get('users')
-  async getAllUsers(@Query('page') page: string, @Query('limit') limit: string) {
-    return this.adminService.getAllUsers(+page || 1, +limit || 20);
+  async getAllUsers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('search') search: string,
+  ) {
+    return this.adminService.getAllUsers(
+      +page || 1,
+      +limit || 20,
+      search,
+    );
   }
 
-  @Post('users/toggle-status')
-  async toggleUserStatus(@Body() body: { user_id: number }) {
-    return this.adminService.toggleUserStatus(body.user_id);
+  @Get('users/:id')
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.getUserById(id);
+  }
+
+  @Post('users/:id/toggle-status')
+  async toggleUserStatus(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.toggleUserStatus(id);
+  }
+
+  @Put('users/:id')
+  async updateUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: { name?: string; role?: string },
+  ) {
+    return this.adminService.updateUser(id, updateData);
+  }
+
+  // Transfer management endpoints
+  @Get('transfers')
+  async getAllTransfers(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+    @Query('status') status: string,
+    @Query('phone') phone: string,
+  ) {
+    return this.adminService.getAllTransfers(
+      +page || 1,
+      +limit || 20,
+      status,
+      phone,
+    );
+  }
+
+  @Get('transfers/:id')
+  async getTransferById(@Param('id', ParseIntPipe) id: number) {
+    return this.adminService.getTransferById(id);
+  }
+
+  // Device management endpoints
+  @Get('devices')
+  async getActiveDevices() {
+    return this.adminService.getActiveDevices();
+  }
+
+  // System logs endpoint
+  @Get('logs')
+  async getSystemLogs(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) {
+    return this.adminService.getSystemLogs(
+      +page || 1,
+      +limit || 50,
+    );
   }
 }
