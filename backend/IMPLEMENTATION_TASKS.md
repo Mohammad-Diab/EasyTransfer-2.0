@@ -3,7 +3,13 @@
 **Project**: EasyTransfer 2.0 Backend API  
 **Framework**: NestJS + Prisma  
 **Status**: 100% Complete (10/10 tasks) ✅  
-**Last Updated**: January 2025
+**Last Updated**: November 15, 2025
+
+**Recent Updates:**
+- ✅ OTP Integration: Created BotClientService for Telegram OTP delivery
+- ✅ Notification System: Integrated transfer result notifications via bot
+- ✅ Authentication Guards: Enabled production security across all controllers
+- ✅ Documentation: Added OTP_INTEGRATION.md and NOTIFICATION_SYSTEM.md
 
 ---
 
@@ -70,7 +76,7 @@ Implement three distinct authentication mechanisms: JWT-based OTP authentication
 - [✅] Android OTP request endpoint (`POST /api/auth/android/request-otp`)
 - [✅] Android OTP verify endpoint (`POST /api/auth/android/verify-otp`)
 - [✅] Bot authentication guard
-- [⏳] Integration with Telegram bot for OTP delivery (TODO in code)
+- [✅] Integration with Telegram bot for OTP delivery (BotClientService)
 - [✅] JWT payload structure for each client type
 - [ ] Token refresh logic (optional - long expiration for Android)
 
@@ -86,11 +92,11 @@ Implement three distinct authentication mechanisms: JWT-based OTP authentication
 
 ### Notes
 - ✅ JWT secrets stored in environment variables (JWT_SECRET, JWT_WEB_EXPIRATION, JWT_ANDROID_EXPIRATION)
-- ⏳ Telegram bot integration pending (code returns OTP in response for DEV - must remove in production)
+- ✅ Telegram bot integration complete via BotClientService (OTP sent via bot, never returned in API)
 - ✅ OTP generation uses 6-digit random codes, bcrypt hashing with salt 10
 - ✅ One-device policy integrated into Android authentication flow
 - ⏳ Rate limiting for OTP requests to be implemented (Task 6 or later)
-- ✅ Authentication guards commented out for development (to be uncommented when testing)
+- ✅ Authentication guards enabled in production (uncommented)
 
 ---
 
