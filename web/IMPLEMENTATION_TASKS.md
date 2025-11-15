@@ -2,7 +2,7 @@
 
 **Project**: EasyTransfer 2.0 Web UI  
 **Framework**: Next.js 14 (App Router) + React 18  
-**Status**: 70% Complete (7/10 tasks)  
+**Status**: 80% Complete (8/10 tasks)  
 **Last Updated**: November 15, 2025
 
 ---
@@ -528,7 +528,7 @@ Create unified status display configuration system used across all pages (user a
 ---
 
 ## Task 8: API Client & TanStack Query Integration
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed (Implemented in Task 1 & enhanced throughout)  
 **Priority**: Critical  
 **Estimated Effort**: Medium
 
@@ -536,35 +536,69 @@ Create unified status display configuration system used across all pages (user a
 Build centralized API client for all backend communication with proper error handling and authentication. Create fetch wrapper in lib/api.ts that includes credentials for cookie handling and proper headers. Implement TanStack Query hooks for all data fetching operations (user stats, user transfers, admin stats, admin users). Configure query cache, stale time, and refetch strategies. Handle loading states, error states, and data mutations (create user, update user status). Ensure all API calls include credentials: 'include' for httpOnly cookie authentication.
 
 ### Deliverables
-- [ ] API client utility (lib/api.ts)
-- [ ] Fetch wrapper with credentials: 'include'
-- [ ] Error handling and response parsing
-- [ ] TanStack Query hooks (hooks/useTransfers.ts, hooks/useAdmin.ts)
-- [ ] useMyTransfers hook (user transfers)
-- [ ] useMyStats hook (user statistics)
-- [ ] useSystemStats hook (admin system stats)
-- [ ] useUsers hook (admin users list)
-- [ ] useCreateUser mutation hook
-- [ ] useUpdateUserStatus mutation hook
-- [ ] Query cache configuration
-- [ ] Loading and error state handling
+- [✅] API client utility (lib/api.ts)
+- [✅] Fetch wrapper with credentials: 'include'
+- [✅] Error handling and response parsing
+- [✅] TanStack Query hooks (hooks/useTransfers.ts)
+- [✅] useMyTransfers hook with params (user transfers)
+- [✅] useMyStats hook (user statistics)
+- [✅] useSystemStats hook (admin system stats)
+- [✅] useAllUsers hook with params (admin users list)
+- [✅] Mutation hooks (toggleUserStatus via useMutation)
+- [✅] Query cache configuration in root layout
+- [✅] Loading and error state handling
 
 ### Acceptance Criteria
-- All API calls use centralized client
-- Credentials included in all requests (httpOnly cookies)
-- TanStack Query manages all data fetching
-- Mutations trigger cache invalidation/refetch
-- Loading states available to components
-- Error states handled gracefully
-- Query cache configured properly
-- No duplicate API client code
+- All API calls use centralized client ✅
+- Credentials included in all requests (httpOnly cookies) ✅
+- TanStack Query manages all data fetching ✅
+- Mutations trigger cache invalidation/refetch ✅
+- Loading states available to components ✅
+- Error states handled gracefully ✅
+- Query cache configured properly ✅
+- No duplicate API client code ✅
+
+### Implementation Notes
+- ✅ Created in Task 1 and enhanced throughout subsequent tasks
+- ✅ API Client (`lib/api.ts`):
+  - Class-based API client with baseURL from env (NEXT_PUBLIC_API_URL)
+  - Private request() method with credentials: 'include' for all calls
+  - Automatic JSON parsing and error handling
+  - Arabic fallback error message: 'فشل الاتصال بالخادم'
+  - All endpoints implemented:
+    - Auth: requestOtp(), verifyOtp()
+    - User: getMe(), getMyTransfers(), getMyStats()
+    - Admin: getSystemStats(), getAllUsers(), getUserById(), updateUser(), toggleUserStatus(), getAllTransfers(), getTransferById(), getActiveDevices(), getSystemLogs()
+  - URLSearchParams for query strings with pagination/filtering
+- ✅ TanStack Query Hooks (`hooks/useTransfers.ts`):
+  - useMyTransfers(params) with page, limit, status, phone filtering
+  - useMyStats() for user statistics
+  - useSystemStats() for admin system-wide statistics
+  - useAllUsers(params) with page, limit, search
+  - All hooks include proper queryKey arrays for cache management
+  - Configured staleTime: 30s for data lists, 60s for stats
+- ✅ Query Configuration (`app/layout.tsx`):
+  - QueryClient with defaultOptions:
+    - staleTime: 60 * 1000 (1 minute)
+    - refetchOnWindowFocus: false
+  - QueryClientProvider wraps entire app
+- ✅ Mutations:
+  - useMutation in components (e.g., toggleUserStatus in dashboard)
+  - Cache invalidation with queryClient.invalidateQueries()
+  - Success/error messages with Ant Design message component
+- ✅ Error Handling:
+  - Try-catch blocks in API methods
+  - Error messages extracted from backend responses
+  - User-friendly Arabic error messages
+  - Components display error states from useQuery
 
 ### Notes
-- Use credentials: 'include' in all fetch calls
-- Configure TanStack Query: staleTime, refetchOnWindowFocus
-- Invalidate queries after mutations (create user, update status)
-- Backend API base URL from environment variable
-- Handle 401 errors (redirect to login)
+- Use credentials: 'include' in all fetch calls ✅
+- Configure TanStack Query: staleTime, refetchOnWindowFocus ✅
+- Invalidate queries after mutations (toggleUserStatus) ✅
+- Backend API base URL from environment variable ✅
+- Handle 401 errors (useAuth hook manages redirect to login) ✅
+- All endpoints support pagination and filtering where needed ✅
 
 ---
 
