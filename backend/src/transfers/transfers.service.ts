@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BotClientService } from '../bot/bot-client.service';
 
 @Injectable()
 export class TransfersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private botClient: BotClientService,
+  ) {}
 
   /**
    * Detect operator from phone number prefix
@@ -388,10 +392,15 @@ export class TransfersService {
     });
 
     if (transfer && transfer.user.telegram_user_id) {
-      // TODO: Send notification to bot
-      // await this.notifyBot(transfer.user.telegram_user_id, transfer.id, status);
-      console.log(
-        `TODO: Notify user ${transfer.user.telegram_user_id} about transfer ${transferId} - ${status}`,
+      // Send notification to user via Telegram bot
+      // For failed transfers, use carrier response as reason
+      const failureReason = status === 'failed' ? carrierResponse : undefined;
+      
+      await this.botClient.notifyTransferResult(
+        transfer.user.telegram_user_id.toString(),
+        transfer.id,
+        status,
+        failureReason,
       );
     }
   }
