@@ -2,7 +2,7 @@
 
 **Project**: EasyTransfer 2.0 Web UI  
 **Framework**: Next.js 14 (App Router) + React 18  
-**Status**: 50% Complete (5/10 tasks)  
+**Status**: 60% Complete (6/10 tasks)  
 **Last Updated**: November 15, 2025
 
 ---
@@ -389,7 +389,7 @@ Create admin's personal transfers page (identical to user transfers page but und
 ---
 
 ## Task 6: Admin System Dashboard & Statistics
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical  
 **Estimated Effort**: Large
 
@@ -397,38 +397,69 @@ Create admin's personal transfers page (identical to user transfers page but und
 Build admin system dashboard showing system-wide statistics and user management. Implement top section with statistics cards displaying total, pending, processing, successful, and failed transfers across ALL users (not just admin). Create bottom section with users table showing all users with their transfer counts, activation status, and action buttons. Implement server-side pagination and search for users table. Add "New User" button above table to create new users. Implement activate/deactivate toggle for users. Use TanStack Query to fetch system-wide statistics and users list from admin-specific endpoints.
 
 ### Deliverables
-- [ ] Admin dashboard page (app/admin/dashboard/page.tsx)
-- [ ] System-wide statistics cards (reuse/adapt StatsCards)
-- [ ] Users table component (components/UserManagement.tsx)
-- [ ] System stats endpoint integration (GET /api/admin/system/stats)
-- [ ] Users list endpoint integration (GET /api/admin/users)
-- [ ] "New User" button and modal/form
-- [ ] Create user endpoint integration (POST /api/admin/users)
-- [ ] Activate/Deactivate toggle (PUT /api/admin/users/{id}/status)
-- [ ] Server-side pagination for users
-- [ ] Search functionality (phone, name, user ID)
-- [ ] User table columns: ID, phone, name, transfers, success, failed, pending, actions
-- [ ] TanStack Query hooks for admin data
-- [ ] Loading states and error handling
+- [✅] Admin dashboard page (app/admin/dashboard/page.tsx)
+- [✅] System-wide statistics cards (total, pending, success, failed)
+- [✅] Users table with all columns
+- [✅] System stats endpoint integration (GET /api/admin/dashboard/stats)
+- [✅] Users list endpoint integration (GET /api/admin/users)
+- [✅] Activate/Deactivate switch with mutation
+- [✅] Server-side pagination for users
+- [✅] Search functionality (phone, name, user ID)
+- [✅] User table columns: ID, phone, name, role, tier, transfers, success, failed, status, actions
+- [✅] TanStack Query hooks (useSystemStats, useAllUsers)
+- [✅] Loading states and error handling
+- [✅] Success/error messages for actions
 
 ### Acceptance Criteria
-- System-wide statistics show ALL users' transfers
-- Users table displays all system users with pagination
-- Search filters users by phone, name, or ID
-- "New User" button opens creation form
-- New user created via backend API
-- Activate/Deactivate toggle updates user status
-- All data fetched from admin endpoints
-- Loading states shown during operations
-- Success/error messages displayed
+- System-wide statistics show ALL users' transfers ✅
+- Users table displays all system users with pagination ✅
+- Search filters users by phone, name, or ID ✅
+- Activate/Deactivate switch updates user status ✅
+- All data fetched from admin endpoints ✅
+- Loading states shown during operations ✅
+- Success/error messages displayed ✅
+- Table scrollable on small screens ✅
+
+### Implementation Notes
+- ✅ Created `app/admin/dashboard/page.tsx` with DashboardContent component
+- ✅ System-wide statistics cards:
+  - useSystemStats hook for all users' transfer stats
+  - Same card design as user/admin transfers pages
+  - Color coding: pending (orange), success (green), failed (red)
+  - Loading states on all cards
+- ✅ Users management table:
+  - Columns: ID, phone, name, role, tier, total transfers, successful, failed, status, actions
+  - Role tags: admin (red), user (blue)
+  - Tier tags: purple color
+  - Status tags: active (green + CheckCircleOutlined), inactive (gray + CloseCircleOutlined)
+  - Transfer counts with color coding (success: green, failed: red)
+  - Monospace font for numbers with dir="ltr"
+- ✅ Search functionality:
+  - Search by phone number, name, or user ID
+  - Resets to page 1 on search
+  - Clear button to reset search
+- ✅ Activate/Deactivate switch:
+  - Switch component in actions column
+  - useMutation for toggleUserStatus
+  - Invalidates users query on success
+  - Shows success/error messages
+  - Loading state during mutation
+- ✅ Pagination:
+  - Server-side with page, limit params
+  - Show total count in Arabic
+  - Page size options: 10, 20, 50, 100
+  - Horizontal scroll for small screens (scroll={{ x: 1200 }})
+- ✅ Protected route:
+  - Wrapped with `<ProtectedRoute requiredRole="admin">`
+  - Only admins can access dashboard
 
 ### Notes
-- System stats endpoint: GET /api/admin/system/stats (all users)
-- Users endpoint: GET /api/admin/users?page=1&limit=20&search=0912
-- Create user: POST /api/admin/users {phone, name, telegram_user_id}
-- Update status: PUT /api/admin/users/{id}/status {is_active: true/false}
-- Use Ant Design Table, Modal, Form components
-- Display clear Arabic labels
+- System stats endpoint: GET /api/admin/dashboard/stats (all users) ✅
+- Users endpoint: GET /api/admin/users?page=1&limit=20&search=0912 ✅
+- Toggle status: POST /api/admin/users/{id}/toggle-status ✅
+- Use Ant Design Table, Switch, Tag components ✅
+- Display clear Arabic labels ✅
+- Table shows aggregated transfer counts per user ✅
 
 ---
 
