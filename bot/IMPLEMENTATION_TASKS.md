@@ -18,7 +18,7 @@
 ---
 
 ## Task 1: Core Bot Setup & Environment Configuration
-**Status**: [ ] Not Started  
+**Status**: [✅] Completed  
 **Priority**: Critical (Foundation)  
 **Estimated Effort**: Small
 
@@ -26,24 +26,44 @@
 Initialize the Node.js project with TypeScript and grammY framework. Set up project structure with proper folders (commands, middlewares, services, config). Configure environment variables for both development (polling) and production (webhook) modes. Implement the grammY bot instance with support for switching between polling and webhook based on NODE_ENV. Create basic bot startup logic and health check.
 
 ### Deliverables
-- [ ] Node.js project initialization with package.json
-- [ ] TypeScript configuration (tsconfig.json)
-- [ ] grammY dependency installation
-- [ ] Environment configuration (.env.example, env.ts)
-- [ ] Project folder structure (commands/, middlewares/, services/, config/)
-- [ ] Bot instance setup in bot.ts
-- [ ] Main entry point (index.ts) with mode switching
-- [ ] Polling mode implementation for development
-- [ ] Webhook mode implementation for production
-- [ ] Bot startup and shutdown handlers
+- [✅] Node.js project initialization with package.json
+- [✅] TypeScript configuration (tsconfig.json)
+- [✅] grammY dependency installation
+- [✅] Environment configuration (.env.example, env.ts)
+- [✅] Project folder structure (commands/, middlewares/, services/, config/)
+- [✅] Bot instance setup in index.ts
+- [✅] Main entry point (index.ts) with mode switching
+- [✅] Polling mode implementation for development
+- [✅] Webhook mode implementation for production
+- [✅] Bot startup and shutdown handlers
+- [✅] Health check command (/health)
 
 ### Acceptance Criteria
-- Bot starts successfully in polling mode (development)
-- Bot starts successfully in webhook mode (production)
-- Environment variables properly loaded
-- Bot responds to basic test messages
-- Clean project structure established
-- TypeScript compilation works without errors
+- Bot starts successfully in polling mode (development) ✅
+- Bot starts successfully in webhook mode (production) ✅
+- Environment variables properly loaded ✅
+- Bot responds to basic test messages ✅
+- Clean project structure established ✅
+- TypeScript compilation works without errors ✅
+
+### Implementation Notes
+- ✅ Created `config/env.ts` with environment validation
+- ✅ Bot uses `BOT_MODE` to switch between polling/webhook
+- ✅ Polling mode: logs bot username and backend URL on startup
+- ✅ Webhook mode: sets webhook URL and logs confirmation
+- ✅ Graceful shutdown handlers for SIGINT and SIGTERM
+- ✅ Error handler catches and logs bot errors
+- ✅ Health check command `/health` for monitoring
+- ✅ Config validates required env vars on startup
+- ✅ Project structure:
+  ```
+  src/
+  ├── commands/        # Command handlers
+  ├── config/          # Configuration (env, messages)
+  ├── middlewares/     # Middleware (auth)
+  ├── services/        # Backend client
+  └── index.ts         # Bot entry point
+  ```
 
 ### Notes
 - Use `BOT_MODE` environment variable to switch between polling/webhook

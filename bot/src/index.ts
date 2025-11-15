@@ -1,10 +1,9 @@
-import 'dotenv/config';
 import { Bot } from 'grammy';
+import { config } from './config/env';
 import { setupCommands } from './commands';
 import { authMiddleware } from './middlewares/auth';
-import { backendClient } from './services/backendClient';
 
-const bot = new Bot(process.env.BOT_TOKEN!);
+const bot = new Bot(config.botToken);
 
 // Apply middleware
 bot.use(authMiddleware);
@@ -12,24 +11,46 @@ bot.use(authMiddleware);
 // Setup commands
 setupCommands(bot);
 
-// Start bot
-const mode = process.env.BOT_MODE || 'polling';
+// Error handler
+bot.catch((err) => {
+  console.error('Bot error:', err);
+});
 
-if (mode === 'webhook') {
-  // Webhook mode for production
-  const webhookUrl = process.env.WEBHOOK_URL!;
-  bot.api.setWebhook(webhookUrl).then(() => {
-    console.log(`🤖 Bot webhook set to: ${webhookUrl}`);
-  });
-} else {
-  // Polling mode for development
-  bot.start({
-    onStart: () => {
-      console.log('🤖 Bot started in polling mode');
-    },
-  });
+// Start bot
+async function startBot() {
+  try {
+    if (config.botMode === 'webhook') {
+      // Webhook mode for production
+      await bot.api.setWebhook(config.webhookUrl);
+      console.log('✅ Bot started successfully in webhook mode');
+      console.log(`🔗 Webhook URL: ${config.webhookUrl}`);
+    } else {
+      // Polling mode for development
+      console.log('🤖 Starting bot in polling mode...');
+      await bot.start({
+        onStart: async (botInfo) => {
+          console.log('✅ Bot started successfully in polling mode');
+          console.log(`🤖 Bot username: @${botInfo.username}`);
+          console.log(`🔗 Connected to backend: ${config.backendApiUrl}`);
+        },
+      });
+    }
+  } catch (error) {
+    console.error('❌ Failed to start bot:', error);
+    process.exit(1);
+  }
 }
 
 // Graceful shutdown
-process.once('SIGINT', () => bot.stop());
-process.once('SIGTERM', () => bot.stop());
+process.once('SIGINT', () => {
+  console.log('\n⏹️  Stopping bot...');
+  bot.stop();
+});
+
+process.once('SIGTERM', () => {
+  console.log('\n⏹️  Stopping bot...');
+  bot.stop();
+});
+
+// Start the bot
+startBot();
