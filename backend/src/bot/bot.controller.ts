@@ -23,4 +23,14 @@ export class BotController {
       body.amount,
     );
   }
+
+  @Post('balance')
+  async submitBalanceInquiry(
+    @Body() body: { telegram_user_id: number; operator: 'syriatel' | 'mtn' },
+  ) {
+    return this.botService.submitBalanceInquiry(
+      body.telegram_user_id,
+      body.operator,
+    );
+  }
 }

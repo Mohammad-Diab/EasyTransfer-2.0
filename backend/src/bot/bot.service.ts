@@ -1,12 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransfersService } from '../transfers/transfers.service';
+import { BalanceService } from '../balance/balance.service';
 
 @Injectable()
 export class BotService {
   constructor(
     private prisma: PrismaService,
     private transfersService: TransfersService,
+    private balanceService: BalanceService,
   ) {}
 
   async authorizeUser(telegramUserId: number) {
@@ -32,5 +34,32 @@ export class BotService {
 
     // Use TransfersService to create transfer with all business rules
     return this.transfersService.createTransfer(user.id, phone, amount);
+  }
+
+  async submitBalanceInquiry(
+    telegramUserId: number,
+    operator: 'syriatel' | 'mtn',
+  ) {
+    // Get user from telegram_user_id
+    const user = await this.prisma.user.findUnique({
+      where: { telegram_user_id: telegramUserId },
+    });
+
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+    }
+
+    // Create in-memory balance job
+    const job = this.balanceService.createBalanceJob(
+      user.id,
+      telegramUserId.toString(),
+      operator,
+    );
+
+    return {
+      job_id: job.jobId,
+      status: 'pending',
+      message: 'Balance inquiry job created',
+    };
   }
 }

@@ -91,4 +91,42 @@ export class BotClientService {
       // Don't throw - notification failure shouldn't break the transfer flow
     }
   }
+
+  /**
+   * Send balance inquiry result to user via Telegram
+   */
+  async notifyBalanceResult(
+    telegramUserId: string,
+    status: 'success' | 'failed' | 'timeout',
+    message: string,
+  ): Promise<void> {
+    try {
+      const response = await fetch(`${this.botInternalUrl}/internal/notify-balance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Bot-Secret': this.botInternalSecret,
+        },
+        body: JSON.stringify({
+          telegram_user_id: telegramUserId,
+          status,
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Bot balance notification failed: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      this.logger.log(`Balance notification sent to user ${telegramUserId}: ${status}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to notify user ${telegramUserId} about balance result:`,
+        error.message,
+      );
+      // Don't throw - notification failure shouldn't break the flow
+    }
+  }
 }

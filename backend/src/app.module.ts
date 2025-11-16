@@ -12,6 +12,7 @@ import { AdminModule } from './admin/admin.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { OperatorsModule } from './operators/operators.module';
 import { TasksModule } from './tasks/tasks.module';
+import { BalanceModule } from './balance/balance.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TasksModule } from './tasks/tasks.module';
     TransfersModule,
     OperatorsModule,
     TasksModule,
+    BalanceModule,
   ],
 })
 export class AppModule {}
