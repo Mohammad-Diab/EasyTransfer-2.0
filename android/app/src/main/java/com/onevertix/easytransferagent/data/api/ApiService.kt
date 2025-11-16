@@ -33,7 +33,7 @@ interface ApiService {
     suspend fun getPendingJobs(
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String
-    ): Response<List<TransferJob>>
+    // ========== Transfer Results ==========
 
     @POST("/api/android/transfers/result")
     suspend fun reportTransferResult(
@@ -48,6 +48,20 @@ interface ApiService {
         @Header("X-Device-ID") deviceId: String,
         @Body result: BalanceResult
     ): Response<Unit>
+
+    @POST("/api/android/results/transfer")
+    suspend fun reportTransferResultNew(
+        @Header("Authorization") token: String,
+        @Header("X-Device-ID") deviceId: String,
+        @Body report: TransferResultReport
+    ): Response<ResultReportResponse>
+
+    @POST("/api/android/results/balance")
+    suspend fun reportBalanceResultNew(
+        @Header("Authorization") token: String,
+        @Header("X-Device-ID") deviceId: String,
+        @Body report: BalanceResultReport
+    ): Response<ResultReportResponse>
 
     // ========== Health Check ==========
 

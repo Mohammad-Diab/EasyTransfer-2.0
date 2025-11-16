@@ -231,36 +231,92 @@ class TransferExecutorService : Service() {
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
                 Logger.i("Transfer USSD executed successfully: ${result.jobId}", TAG)
 
-                // TODO: Task 7 - Real response capture via Accessibility Service
-                // For now, we simulate a response for testing
+                // Get response (simulated for now, will be from Accessibility Service)
                 val simulatedResponse = simulateUssdResponse(result.operator)
 
                 // Parse the response
                 val parseResult = responseParser.parseResponse(result.operator, simulatedResponse)
 
-                when (parseResult) {
+                // Determine status and report to backend
+                val (status, message) = when (parseResult) {
                     is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
                         Logger.i("Transfer successful: ${parseResult.message}", TAG)
                         updateNotification("Transfer completed successfully")
-                        // TODO: Task 8 - Report success to backend
+                        "success" to parseResult.message
                     }
                     is com.onevertix.easytransferagent.data.models.ParseResult.Failure -> {
                         Logger.w("Transfer failed: ${parseResult.message}", TAG)
                         updateNotification("Transfer failed")
-                        // TODO: Task 8 - Report failure to backend
+                        "failed" to parseResult.message
                     }
                     is com.onevertix.easytransferagent.data.models.ParseResult.Unknown -> {
                         Logger.w("Transfer result unknown: ${parseResult.message}", TAG)
                         updateNotification("Transfer result unclear")
-                        // TODO: Task 8 - Report unknown to backend
+                        "unknown" to parseResult.message
                     }
                 }
+
+                // Report to backend
+                reportTransferResult(
+                    requestId = job.requestId ?: job.jobId ?: "unknown",
+                    jobId = job.jobId,
+                    status = status,
+                    message = message,
+                    operator = result.operator,
+                    simSlot = result.simSlot
+                )
             }
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
                 Logger.e("Transfer execution failed: ${result.message}", TAG)
                 updateNotification("Transfer error: ${result.message}")
-                // TODO: Task 8 - Report error to backend
+
+                // Report error to backend
+                reportTransferResult(
+                    requestId = job.requestId ?: job.jobId ?: "unknown",
+                    jobId = job.jobId,
+                    status = "error",
+                    message = result.message,
+                    operator = job.operatorCode ?: "UNKNOWN",
+                    simSlot = -1
+                )
             }
+        }
+    }
+
+    /**
+     * Report transfer result to backend
+     */
+    private suspend fun reportTransferResult(
+        requestId: String,
+        jobId: String?,
+        status: String,
+        message: String,
+        operator: String,
+        simSlot: Int
+    ) {
+        try {
+            val report = com.onevertix.easytransferagent.data.models.TransferResultReport(
+                requestId = requestId,
+                jobId = jobId,
+                status = status,
+                message = message,
+                executedAt = java.time.Instant.now().toString(),
+                operator = operator,
+                simSlot = simSlot
+            )
+
+            val result = transferRepository.reportTransferResultNew(report)
+
+            if (result.isSuccess) {
+                Logger.i("Transfer result reported successfully: $requestId", TAG)
+            } else {
+                Logger.e("Failed to report transfer result: ${result.exceptionOrNull()?.message}", TAG)
+                // TODO: Queue for retry with WorkManager
+            }
+
+        } catch (e: Exception) {
+            Logger.e("Error reporting transfer result: ${e.message}", e, TAG)
+            // TODO: Queue for retry with WorkManager
         }
     }
 
@@ -289,13 +345,97 @@ class TransferExecutorService : Service() {
         when (result) {
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
                 Logger.i("Balance inquiry executed successfully for $operator", TAG)
-                // TODO: Task 7 - Wait for USSD response via Accessibility Service
-                // TODO: Task 8 - Report result to backend
+
+                // Simulated response
+                val simulatedResponse = simulateBalanceResponse(operator)
+                val parseResult = responseParser.parseResponse(operator, simulatedResponse)
+
+                val (status, message) = when (parseResult) {
+                    is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
+                        Logger.i("Balance check successful: ${parseResult.message}", TAG)
+                        "success" to parseResult.message
+                    }
+                    else -> {
+                        Logger.w("Balance check unclear: ${parseResult}", TAG)
+                        "failed" to "Unable to determine balance"
+                    }
+                }
+
+                // Report to backend
+                reportBalanceResult(
+                    operator = operator,
+                    status = status,
+                    message = message,
+                    balance = extractBalance(message),
+                    simSlot = result.simSlot
+                )
             }
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
                 Logger.e("Balance inquiry failed: ${result.message}", TAG)
-                // TODO: Task 8 - Report error to backend
+
+                // Report error
+                reportBalanceResult(
+                    operator = operator,
+                    status = "failed",
+                    message = result.message,
+                    balance = null,
+                    simSlot = -1
+                )
             }
+        }
+    }
+
+    /**
+     * Report balance result to backend
+     */
+    private suspend fun reportBalanceResult(
+        operator: String,
+        status: String,
+        message: String,
+        balance: String?,
+        simSlot: Int
+    ) {
+        try {
+            val report = com.onevertix.easytransferagent.data.models.BalanceResultReport(
+                operator = operator,
+                status = status,
+                balance = balance,
+                message = message,
+                executedAt = java.time.Instant.now().toString(),
+                simSlot = simSlot
+            )
+
+            val result = transferRepository.reportBalanceResultNew(report)
+
+            if (result.isSuccess) {
+                Logger.i("Balance result reported successfully: $operator", TAG)
+            } else {
+                Logger.e("Failed to report balance result: ${result.exceptionOrNull()?.message}", TAG)
+            }
+
+        } catch (e: Exception) {
+            Logger.e("Error reporting balance result: ${e.message}", e, TAG)
+        }
+    }
+
+    /**
+     * Extract balance from response message (simple pattern matching)
+     */
+    private fun extractBalance(message: String): String? {
+        // Simple regex to extract numbers (balance amount)
+        val numberPattern = Regex("\\d+")
+        val match = numberPattern.find(message)
+        return match?.value
+    }
+
+    /**
+     * Simulate balance inquiry response
+     */
+    private fun simulateBalanceResponse(operator: String): String {
+        return when (operator.uppercase()) {
+            "SYRIATEL" -> "رصيدك الحالي 5000 ل.س"
+            "MTN" -> "Your balance: 3000 SYP"
+            else -> "Balance: 1000"
         }
     }
 
