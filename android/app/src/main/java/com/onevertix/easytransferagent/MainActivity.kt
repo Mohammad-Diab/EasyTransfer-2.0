@@ -13,8 +13,10 @@ import androidx.compose.ui.Modifier
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.data.storage.SecureStorage
 import com.onevertix.easytransferagent.data.repository.DefaultAuthRepository
+import com.onevertix.easytransferagent.services.TransferExecutorService
 import com.onevertix.easytransferagent.ui.auth.*
 import com.onevertix.easytransferagent.ui.config.*
+import com.onevertix.easytransferagent.ui.dashboard.*
 import com.onevertix.easytransferagent.ui.permissions.PermissionsLoadingScreen
 import com.onevertix.easytransferagent.ui.permissions.PermissionsScreen
 import com.onevertix.easytransferagent.ui.permissions.PermissionsUiState
@@ -186,7 +188,38 @@ fun MainContent(
             }
         }
         AppScreen.DASHBOARD -> {
-            DashboardPlaceholder(modifier)
+            val dashboardRepo = remember {
+                DefaultAuthRepository(LocalPreferences(context), SecureStorage(context))
+            }
+            val dashboardViewModel = remember { DashboardViewModel(dashboardRepo) }
+            val dashboardState by dashboardViewModel.uiState.collectAsState()
+
+            when (val st = dashboardState) {
+                is DashboardUiState.Loading -> DashboardLoadingScreen(modifier)
+                is DashboardUiState.Ready -> DashboardScreen(
+                    modifier = modifier,
+                    state = st,
+                    onStartService = {
+                        TransferExecutorService.start(context)
+                        dashboardViewModel.startService()
+                    },
+                    onStopService = {
+                        TransferExecutorService.stop(context)
+                        dashboardViewModel.stopService()
+                    },
+                    onLogout = {
+                        TransferExecutorService.stop(context)
+                        dashboardViewModel.logout()
+                        currentScreen = AppScreen.AUTH_LOGIN
+                    }
+                )
+                is DashboardUiState.LoggedOut -> {
+                    // Return to login
+                    LaunchedEffect(Unit) {
+                        currentScreen = AppScreen.AUTH_LOGIN
+                    }
+                }
+            }
         }
     }
 }
