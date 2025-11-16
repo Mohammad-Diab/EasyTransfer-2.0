@@ -64,9 +64,7 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
       .text('إلغاء', 'cancel_transfer');
 
     // Send confirmation message
-    const confirmMessage = requestedAmount === finalAmount
-      ? MESSAGES.CONFIRM_TRANSFER(finalAmount, phone)
-      : MESSAGES.ADJUSTED_AMOUNT(requestedAmount, finalAmount, phone);
+    const confirmMessage = MESSAGES.CONFIRM_TRANSFER(finalAmount, phone)
 
     await ctx.reply(confirmMessage, { reply_markup: keyboard });
 
