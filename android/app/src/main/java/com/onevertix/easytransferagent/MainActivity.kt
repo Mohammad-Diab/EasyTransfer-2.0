@@ -199,6 +199,7 @@ fun MainContent(
                 is DashboardUiState.Ready -> DashboardScreen(
                     modifier = modifier,
                     state = st,
+                    viewModel = dashboardViewModel,
                     onStartService = {
                         TransferExecutorService.start(context)
                         dashboardViewModel.startService()
