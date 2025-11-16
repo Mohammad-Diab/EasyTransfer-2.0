@@ -36,39 +36,47 @@ class DefaultAuthRepository(
     }
 
     override suspend fun requestOtp(rawPhone: String): Result<OtpRequestResponse> {
-        val phone = Validation.normalizeToE164Syrian(rawPhone)
-        if (!Validation.isValidSyrianPhone(rawPhone)) {
-            return Result.failure(IllegalArgumentException("Invalid phone number format"))
-        }
-        val response = api().requestOtp(OtpRequest(phone))
-        return if (response.isSuccessful && response.body() != null) {
-            Result.success(response.body()!!)
-        } else {
-            Result.failure(Exception("Failed to request OTP: ${response.code()}"))
+        return try {
+            val phone = Validation.normalizeToE164Syrian(rawPhone)
+            if (!Validation.isValidSyrianPhone(rawPhone)) {
+                return Result.failure(IllegalArgumentException("Invalid phone number format"))
+            }
+            val response = api().requestOtp(OtpRequest(phone))
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to request OTP: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
     override suspend fun verifyOtp(rawPhone: String, otp: String): Result<AuthResponse> {
-        val phone = Validation.normalizeToE164Syrian(rawPhone)
-        if (!Validation.isValidSyrianPhone(rawPhone)) {
-            return Result.failure(IllegalArgumentException("Invalid phone number format"))
-        }
-        if (!Validation.isValidOtp(otp)) {
-            return Result.failure(IllegalArgumentException("Invalid OTP format"))
-        }
-        val response = api().verifyOtp(OtpVerification(phone = phone, otp = otp))
-        return if (response.isSuccessful && response.body() != null) {
-            val body = response.body()!!
-            // Persist auth
-            secure.saveAccessToken(body.accessToken)
-            secure.saveTokenExpiry((System.currentTimeMillis() / 1000) + body.expiresIn)
-            secure.saveUserId(body.userId)
-            secure.saveDeviceId(body.deviceId)
+        return try {
+            val phone = Validation.normalizeToE164Syrian(rawPhone)
+            if (!Validation.isValidSyrianPhone(rawPhone)) {
+                return Result.failure(IllegalArgumentException("Invalid phone number format"))
+            }
+            if (!Validation.isValidOtp(otp)) {
+                return Result.failure(IllegalArgumentException("Invalid OTP format"))
+            }
+            val response = api().verifyOtp(OtpVerification(phone = phone, otp = otp))
+            if (response.isSuccessful && response.body() != null) {
+                val body = response.body()!!
+                // Persist auth
+                secure.saveAccessToken(body.accessToken)
+                secure.saveTokenExpiry((System.currentTimeMillis() / 1000) + body.expiresIn)
+                secure.saveUserId(body.userId)
+                secure.saveDeviceId(body.deviceId)
 
-            // Auth providers are already set in init, token is now available
-            Result.success(body)
-        } else {
-            Result.failure(Exception("Failed to verify OTP: ${response.code()}"))
+                // Auth providers are already set in init, token is now available
+                Result.success(body)
+            } else {
+                Result.failure(Exception("Failed to verify OTP: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

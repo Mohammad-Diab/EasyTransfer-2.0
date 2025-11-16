@@ -21,18 +21,21 @@ import com.onevertix.easytransferagent.ui.permissions.PermissionsLoadingScreen
 import com.onevertix.easytransferagent.ui.permissions.PermissionsScreen
 import com.onevertix.easytransferagent.ui.permissions.PermissionsUiState
 import com.onevertix.easytransferagent.ui.permissions.PermissionsViewModel
+import com.onevertix.easytransferagent.ui.setup.*
 import com.onevertix.easytransferagent.ui.theme.EasyTransferAgentTheme
 
 class MainActivity : ComponentActivity() {
 
     private val permissionsViewModel: PermissionsViewModel by viewModels()
+    private val serverSetupViewModel: ServerSetupViewModel by viewModels()
     private val configViewModel: ConfigViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize config view model
+        // Initialize view models
+        serverSetupViewModel.initialize(this)
         configViewModel.initialize(this)
 
         setContent {
@@ -41,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     MainContent(
                         modifier = Modifier.padding(innerPadding),
                         permissionsViewModel = permissionsViewModel,
+                        serverSetupViewModel = serverSetupViewModel,
                         configViewModel = configViewModel,
                         onRequestPermissions = {
                             permissionsViewModel.requestPermissions(this)
@@ -74,11 +78,13 @@ class MainActivity : ComponentActivity() {
 fun MainContent(
     modifier: Modifier = Modifier,
     permissionsViewModel: PermissionsViewModel,
+    serverSetupViewModel: ServerSetupViewModel,
     configViewModel: ConfigViewModel,
     onRequestPermissions: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
     val permissionsState by permissionsViewModel.uiState.collectAsState()
+    val serverSetupState by serverSetupViewModel.uiState.collectAsState()
     val configState by configViewModel.uiState.collectAsState()
 
     // Create AuthViewModel with repository
@@ -93,6 +99,12 @@ fun MainContent(
     // Navigation rules
     LaunchedEffect(permissionsState) {
         if (permissionsState is PermissionsUiState.Granted) {
+            currentScreen = AppScreen.SERVER_SETUP
+        }
+    }
+
+    LaunchedEffect(serverSetupState) {
+        if (serverSetupState is ServerSetupUiState.Success) {
             currentScreen = AppScreen.CONFIGURATION
         }
     }
@@ -133,6 +145,24 @@ fun MainContent(
                 is PermissionsUiState.Granted -> {
                     PermissionsLoadingScreen(modifier = modifier)
                 }
+            }
+        }
+        AppScreen.SERVER_SETUP -> {
+            when (val state = serverSetupState) {
+                is ServerSetupUiState.Loading -> ServerSetupLoadingScreen(modifier)
+                is ServerSetupUiState.Editing -> ServerSetupScreen(
+                    modifier = modifier,
+                    state = state,
+                    onUrlChange = serverSetupViewModel::updateServerUrl,
+                    onTestConnection = serverSetupViewModel::testConnection
+                )
+                is ServerSetupUiState.Success -> ServerSetupSuccessScreen(
+                    modifier = modifier,
+                    serverUrl = state.serverUrl,
+                    onContinue = {
+                        currentScreen = AppScreen.CONFIGURATION
+                    }
+                )
             }
         }
         AppScreen.CONFIGURATION -> {
@@ -240,6 +270,7 @@ private fun DashboardPlaceholder(modifier: Modifier = Modifier) {
  */
 private enum class AppScreen {
     PERMISSIONS,
+    SERVER_SETUP,
     CONFIGURATION,
     AUTH_LOGIN,
     AUTH_OTP,

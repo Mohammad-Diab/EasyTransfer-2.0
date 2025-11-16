@@ -60,12 +60,23 @@ class AuthViewModel(
         }
         _uiState.value = st.copy(isLoading = true, phoneError = null)
         viewModelScope.launch {
-            val res = repo.requestOtp(phone)
-            if (res.isSuccess) {
-                _uiState.value = AuthUiState.OtpEntry(phone = phone, resendSecondsLeft = 60)
-                startResendTimer(60)
-            } else {
-                _uiState.value = st.copy(isLoading = false, phoneError = "تعذر إرسال الرمز، حاول لاحقًا")
+            try {
+                val res = repo.requestOtp(phone)
+                if (res.isSuccess) {
+                    _uiState.value = AuthUiState.OtpEntry(phone = phone, resendSecondsLeft = 60)
+                    startResendTimer(60)
+                } else {
+                    _uiState.value = st.copy(isLoading = false, phoneError = "تعذر إرسال الرمز، حاول لاحقًا")
+                }
+            } catch (e: Exception) {
+                _uiState.value = st.copy(
+                    isLoading = false,
+                    phoneError = when {
+                        e.message?.contains("Server URL not configured") == true -> "Server URL not configured"
+                        e.message?.contains("Unable to resolve host") == true -> "Cannot connect to server"
+                        else -> "Error: ${e.message}"
+                    }
+                )
             }
         }
     }
@@ -84,11 +95,18 @@ class AuthViewModel(
         }
         _uiState.value = st.copy(isLoading = true, otpError = null)
         viewModelScope.launch {
-            val res = repo.verifyOtp(st.phone, otp)
-            if (res.isSuccess) {
-                _uiState.value = AuthUiState.Authenticated
-            } else {
-                _uiState.value = st.copy(isLoading = false, otpError = "رمز غير صحيح أو منتهي")
+            try {
+                val res = repo.verifyOtp(st.phone, otp)
+                if (res.isSuccess) {
+                    _uiState.value = AuthUiState.Authenticated
+                } else {
+                    _uiState.value = st.copy(isLoading = false, otpError = "رمز غير صحيح أو منتهي")
+                }
+            } catch (e: Exception) {
+                _uiState.value = st.copy(
+                    isLoading = false,
+                    otpError = "Error: ${e.message}"
+                )
             }
         }
     }
