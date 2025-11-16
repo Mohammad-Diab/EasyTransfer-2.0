@@ -28,8 +28,12 @@ export class BotService {
       where: { telegram_user_id: telegramUserId },
     });
 
-    if (!user || user.status !== 'active') {
+    if (!user) {
       throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+    }
+
+    if (user.status !== 'active') {
+      throw new UnauthorizedException('حسابك معطل يرجى التواصل مع مدير النظام');
     }
 
     // Use TransfersService to create transfer with all business rules
@@ -45,8 +49,12 @@ export class BotService {
       where: { telegram_user_id: telegramUserId },
     });
 
-    if (!user || user.status !== 'active') {
+    if (!user) {
       throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+    }
+
+    if (user.status !== 'active') {
+      throw new UnauthorizedException('حسابك معطل يرجى التواصل مع مدير النظام');
     }
 
     // Create in-memory balance job
