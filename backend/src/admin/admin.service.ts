@@ -156,6 +156,11 @@ export class AdminService {
       throw new NotFoundException('المستخدم غير موجود');
     }
 
+    // Prevent disabling admin accounts
+    if (user.role === 'ADMIN') {
+      throw new BadRequestException('لا يمكن تعطيل حساب المدير');
+    }
+
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
 
     return this.prisma.user.update({

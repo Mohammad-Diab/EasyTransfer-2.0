@@ -32,6 +32,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { UserRole } from '@/lib/constants';
 import AddUserModal from '@/components/AddUserModal';
 import EditUserModal from '@/components/EditUserModal';
+import { useAuth } from '@/hooks/useAuth';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -44,6 +45,7 @@ function DashboardContent() {
   const [editUserModalOpen, setEditUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ id: number; name: string | null } | null>(null);
 
+  const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
   const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useSystemStats();
   const { data: usersData, isLoading: usersLoading, isError: usersError, refetch: refetchUsers } = useAllUsers({ page, limit, search });
@@ -102,8 +104,8 @@ function DashboardContent() {
       key: 'role',
       width: 100,
       render: (role: string) => (
-        <Tag color={role === 'admin' ? 'red' : 'blue'}>
-          {role === 'admin' ? 'مدير' : 'مستخدم'}
+        <Tag color={role === UserRole.ADMIN ? 'red' : 'blue'}>
+          {role === UserRole.ADMIN ? 'مدير' : 'مستخدم'}
         </Tag>
       ),
     },
@@ -153,23 +155,29 @@ function DashboardContent() {
       title: 'إجراءات',
       key: 'actions',
       width: 180,
-      render: (_: any, record: any) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEditUser({ id: record.id, name: record.name })}
-            title="تعديل"
-          />
-          <Switch
-            checked={record.status === 'active'}
-            onChange={() => handleToggleStatus(record.id, record.status === 'active')}
-            loading={toggleStatusMutation.isPending}
-            checkedChildren="نشط"
-            unCheckedChildren="معطل"
-          />
-        </Space>
-      ),
+      render: (_: any, record: any) => {
+        const isAdmin = record.role === UserRole.ADMIN;
+        
+        return (
+          <Space>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEditUser({ id: record.id, name: record.name })}
+              title="تعديل"
+            />
+            <Switch
+              checked={record.status === 'active'}
+              onChange={() => handleToggleStatus(record.id, record.status === 'active')}
+              loading={toggleStatusMutation.isPending}
+              disabled={isAdmin}
+              checkedChildren="نشط"
+              unCheckedChildren="معطل"
+              title={isAdmin ? 'لا يمكن تعطيل حساب المدير' : undefined}
+            />
+          </Space>
+        );
+      },
     },
   ];
 

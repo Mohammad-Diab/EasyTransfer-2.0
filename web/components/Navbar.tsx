@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
+import { UserRole } from '@/lib/constants';
 
 const { Header } = Layout;
 const { Title } = Typography;
@@ -29,7 +30,7 @@ export default function Navbar() {
     const items: MenuProps['items'] = [];
 
     // Both regular users and admins can see "My Transfers"
-    if (user.role === 'user' || user.role === 'admin') {
+    if (user.role === UserRole.USER || user.role === UserRole.ADMIN) {
       items.push({
         key: '/transfers',
         icon: <SwapOutlined />,
@@ -42,7 +43,7 @@ export default function Navbar() {
     }
 
     // Only admins see System Dashboard / Users
-    if (user.role === 'admin') {
+    if (user.role === UserRole.ADMIN) {
       items.push({
         key: '/admin/dashboard',
         icon: <DashboardOutlined />,
