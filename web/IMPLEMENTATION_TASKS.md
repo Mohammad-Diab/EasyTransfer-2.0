@@ -313,7 +313,7 @@ Build the user transfers page showing personal transfer history with statistics 
   - Enhanced table columns:
     - ID: monospace font with dir="ltr", width 80px
     - Phone: monospace with dir="ltr"
-    - Amount: formatted with toLocaleString() + "IQD", semibold
+    - Amount: formatted with toLocaleString(), semibold
     - Status: StatusTag component with icons, width 140px
     - Date: ar-IQ locale with date + time (HH:mm), width 160px
   - Statistics cards with loading state and color coding:
@@ -647,7 +647,7 @@ Ensure complete RTL (right-to-left) layout support for Arabic interface across a
   - Monospace font for better readability: `className="font-mono"`
   - Consistent across all pages (IDs, phone numbers, amounts, counts, dates)
   - Statistics values with valueStyle={{ direction: 'ltr' }}
-  - toLocaleString() for formatted amounts: `{amount.toLocaleString('en-US')} IQD`
+  - toLocaleString() for formatted amounts: `{amount.toLocaleString('en-US')}`
 - ✅ Arabic Localization:
   - All UI labels, placeholders, buttons, table headers in Arabic
   - Success/error messages in Arabic

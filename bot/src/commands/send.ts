@@ -74,6 +74,9 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
     // Check if user clicked button
     if (confirmCtx.callbackQuery?.data?.startsWith('confirm_')) {
       await confirmCtx.answerCallbackQuery();
+      
+      // Remove keyboard
+      await confirmCtx.editMessageReplyMarkup({ reply_markup: undefined });
 
       // Submit to backend
       const response = await backendClient.submitTransfer(userId, phone, finalAmount);
@@ -85,6 +88,10 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
       }
     } else if (confirmCtx.callbackQuery?.data === 'cancel_transfer') {
       await confirmCtx.answerCallbackQuery();
+      
+      // Remove keyboard
+      await confirmCtx.editMessageReplyMarkup({ reply_markup: undefined });
+      
       await ctx.reply(MESSAGES.TRANSFER_CANCELLED);
     } else {
       await ctx.reply(MESSAGES.TRANSFER_CANCELLED);

@@ -1,24 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Card, 
-  Statistic, 
-  Row, 
-  Col, 
-  Table, 
-  Typography, 
-  Input, 
-  Button, 
-  Space, 
+import {
+  Card,
+  Statistic,
+  Row,
+  Col,
+  Table,
+  Typography,
+  Input,
+  Button,
+  Space,
   Tag,
   Switch,
   Empty,
   message,
   Alert,
 } from 'antd';
-import { 
-  SearchOutlined, 
+import {
+  SearchOutlined,
   UserAddOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -73,8 +73,8 @@ function DashboardContent() {
     },
     {
       title: 'رقم الهاتف',
-      dataIndex: 'phone_number',
-      key: 'phone_number',
+      dataIndex: 'phone',
+      key: 'phone',
       width: 160,
       render: (phone: string) => <span dir="ltr" className="font-mono">{phone}</span>,
     },
@@ -129,12 +129,12 @@ function DashboardContent() {
     },
     {
       title: 'الحالة',
-      dataIndex: 'is_active',
-      key: 'is_active',
+      dataIndex: 'status',
+      key: 'status',
       width: 100,
-      render: (isActive: boolean) => (
-        <Tag color={isActive ? 'success' : 'default'} icon={isActive ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
-          {isActive ? 'نشط' : 'معطل'}
+      render: (status: string) => (
+        <Tag color={status === 'active' ? 'success' : 'default'} icon={status === 'active' ? <CheckCircleOutlined /> : <CloseCircleOutlined />}>
+          {status === 'active' ? 'نشط' : 'معطل'}
         </Tag>
       ),
     },
@@ -144,8 +144,8 @@ function DashboardContent() {
       width: 120,
       render: (_: any, record: any) => (
         <Switch
-          checked={record.is_active}
-          onChange={() => handleToggleStatus(record.id, record.is_active)}
+          checked={record.status === 'active'}
+          onChange={() => handleToggleStatus(record.id, record.status === 'active')}
           loading={toggleStatusMutation.isPending}
           checkedChildren="نشط"
           unCheckedChildren="معطل"
@@ -154,7 +154,7 @@ function DashboardContent() {
     },
   ];
 
-  const users = usersData?.data || [];
+  const users = usersData?.users || [];
   const total = usersData?.total || 0;
 
   return (
@@ -184,36 +184,36 @@ function DashboardContent() {
       <Row gutter={[16, 16]} className="mb-6">
         <Col xs={24} sm={12} md={6}>
           <Card loading={statsLoading}>
-            <Statistic 
-              title="إجمالي التحويلات" 
-              value={stats?.total || 0}
+            <Statistic
+              title="إجمالي التحويلات"
+              value={stats?.transfers?.total || 0}
               valueStyle={{ direction: 'ltr' }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card loading={statsLoading}>
-            <Statistic 
-              title="قيد الانتظار" 
-              value={stats?.pending || 0}
+            <Statistic
+              title="قيد الانتظار"
+              value={stats?.transfers?.pending || 0}
               valueStyle={{ direction: 'ltr', color: '#faad14' }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card loading={statsLoading}>
-            <Statistic 
-              title="ناجحة" 
-              value={stats?.success || 0}
+            <Statistic
+              title="ناجحة"
+              value={stats?.transfers?.success || 0}
               valueStyle={{ direction: 'ltr', color: '#52c41a' }}
             />
           </Card>
         </Col>
         <Col xs={24} sm={12} md={6}>
           <Card loading={statsLoading}>
-            <Statistic 
-              title="فاشلة" 
-              value={stats?.failed || 0}
+            <Statistic
+              title="فاشلة"
+              value={stats?.transfers?.failed || 0}
               valueStyle={{ direction: 'ltr', color: '#ff4d4f' }}
             />
           </Card>
@@ -225,18 +225,22 @@ function DashboardContent() {
         title={
           <div className="flex justify-between items-center">
             <span>إدارة المستخدمين</span>
-            <Search
-              placeholder="ابحث برقم الهاتف، الاسم، أو معرف المستخدم..."
-              allowClear
-              enterButton={<SearchOutlined />}
-              onSearch={handleSearch}
-              dir="rtl"
-              style={{ width: 400 }}
-            />
+            <Col xs={24} sm={12} md={4}>
+              <Search
+                placeholder="ابحث برقم الهاتف، الاسم، أو معرف المستخدم..."
+                allowClear
+                enterButton={<SearchOutlined />}
+                onSearch={handleSearch}
+                dir="rtl"
+                style={{ fontWeight: 'normal' }}
+              />
+            </Col>
           </div>
         }
-        headStyle={{ borderBottom: 'none' }}
-        bodyStyle={{ paddingTop: '0px' }}
+        styles={{
+          header: { borderBottom: 'none' },
+          body: { paddingTop: '0px' }
+        }}
       >
         {/* Error Alert for Users */}
         {usersError && (

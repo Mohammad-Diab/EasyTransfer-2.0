@@ -56,7 +56,7 @@ function TransfersContent() {
       width: 120,
       render: (amount: number) => (
         <span dir="ltr" className="font-mono font-semibold">
-          {amount.toLocaleString('en-US')} IQD
+          {amount.toLocaleString('en-US')}
         </span>
       ),
     },
@@ -75,7 +75,7 @@ function TransfersContent() {
       render: (date: string) => {
         const d = new Date(date);
         return (
-          <span dir="ltr" className="font-mono text-sm">
+          <span dir="ltr" className="text-sm">
             {d.toLocaleDateString('ar-IQ')} {d.toLocaleTimeString('ar-IQ', { 
               hour: '2-digit', 
               minute: '2-digit' 
@@ -87,7 +87,7 @@ function TransfersContent() {
   ];
 
   // Extract transfers array and total from API response
-  const transfers = transfersData?.data || [];
+  const transfers = transfersData?.transfers || [];
   const total = transfersData?.total || 0;
 
   return (
@@ -175,16 +175,7 @@ function TransfersContent() {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {/* Filters */}
           <Row gutter={16} justify="end">
-            <Col xs={24} sm={12} md={6}>
-              <Search
-                placeholder="ابحث برقم الهاتف..."
-                allowClear
-                enterButton={<SearchOutlined />}
-                onSearch={handleSearch}
-                dir="rtl"
-              />
-            </Col>
-            <Col xs={24} sm={12} md={6}>
+            <Col xs={24} sm={12} md={4}>
               <Select
                 placeholder="تصفية حسب الحالة"
                 style={{ width: '100%' }}
@@ -198,6 +189,15 @@ function TransfersContent() {
                   { label: 'ناجحة', value: 'success' },
                   { label: 'فاشلة', value: 'failed' },
                 ]}
+              />
+            </Col>
+            <Col xs={24} sm={12} md={4}>
+              <Search
+                placeholder="ابحث برقم الهاتف..."
+                allowClear
+                enterButton={<SearchOutlined />}
+                onSearch={handleSearch}
+                dir="rtl"
               />
             </Col>
           </Row>

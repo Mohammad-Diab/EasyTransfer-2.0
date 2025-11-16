@@ -25,6 +25,10 @@ export async function handleBalanceCallback(ctx: MyContext) {
   try {
     await backendClient.submitBalanceJob(ctx.from?.id || 0, operator);
     await ctx.answerCallbackQuery();
+    
+    // Remove keyboard by editing the message
+    await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+    
     await ctx.reply('⏳ يتم الآن الاستعلام عن الرصيد… يرجى الانتظار.');
 
     logger.info('Balance job submitted', {
@@ -33,6 +37,12 @@ export async function handleBalanceCallback(ctx: MyContext) {
     });
   } catch (error: any) {
     await ctx.answerCallbackQuery();
+    
+    // Remove keyboard even on error
+    try {
+      await ctx.editMessageReplyMarkup({ reply_markup: undefined });
+    } catch {}
+    
     await ctx.reply('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
 
     logger.error('Balance job submission error', error, {
