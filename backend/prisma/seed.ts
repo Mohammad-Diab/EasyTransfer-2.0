@@ -9,11 +9,14 @@ async function main() {
   console.log('📞 Creating operator prefixes...');
   await prisma.operatorPrefix.createMany({
     data: [
+      // Syriatel prefixes
       { operator_code: 'SYRIATEL', prefix: '093', is_active: true },
-      { operator_code: 'SYRIATEL', prefix: '094', is_active: true },
+      { operator_code: 'SYRIATEL', prefix: '098', is_active: true },
+      { operator_code: 'SYRIATEL', prefix: '099', is_active: true },
+      // MTN prefixes
+      { operator_code: 'MTN', prefix: '094', is_active: true },
       { operator_code: 'MTN', prefix: '095', is_active: true },
       { operator_code: 'MTN', prefix: '096', is_active: true },
-      { operator_code: 'MTN', prefix: '099', is_active: true },
     ],
     skipDuplicates: true,
   });
@@ -77,7 +80,7 @@ async function main() {
   console.log('✅ Database seeded successfully!');
   console.log(`   - Created ${admin.name} (Admin): ${admin.phone}`);
   console.log(`   - Created ${testUser.name} (User): ${testUser.phone}`);
-  console.log(`   - Created 5 operator prefixes`);
+  console.log(`   - Created 6 operator prefixes (Syriatel: 093, 098, 099 | MTN: 094, 095, 096)`);
   console.log(`   - Created 4 operator message rules`);
 }
 
