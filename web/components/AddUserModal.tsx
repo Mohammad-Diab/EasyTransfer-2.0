@@ -31,11 +31,17 @@ export default function AddUserModal({ open, onClose, onSuccess }: AddUserModalP
             } else if (currentStep === 1) {
                 // Step 2: Validate form and verify telegram user
                 await form.validateFields(['name', 'telegram_user_id', 'phone']);
-                const values = form.getFieldsValue(['telegram_user_id', 'phone']);
+                const values = form.getFieldsValue(['name', 'telegram_user_id', 'phone']);
 
                 setLoading(true);
                 try {
+                    // Verify user data
                     await api.verifyTelegramUser(Number(values.telegram_user_id), values.phone);
+                    
+                    // Request OTP to be sent
+                    await api.requestUserOtp(Number(values.telegram_user_id));
+                    
+                    message.success('تم إرسال رمز التحقق إلى البوت');
                     setCurrentStep(2);
                 } catch (error: any) {
                     message.error(error.message || 'فشل التحقق من بيانات المستخدم');
@@ -54,8 +60,14 @@ export default function AddUserModal({ open, onClose, onSuccess }: AddUserModalP
 
     const handleCreate = async () => {
         try {
-            await form.validateFields();
-            const values = form.getFieldsValue();
+            // Validate OTP field
+            await form.validateFields(['otp']);
+            
+            // Get ALL form values (from all steps)
+            const values = form.getFieldsValue(['name', 'phone', 'telegram_user_id', 'otp']);
+
+            // Log for debugging
+            console.log('Creating user with values:', values);
 
             setLoading(true);
             try {
@@ -76,6 +88,7 @@ export default function AddUserModal({ open, onClose, onSuccess }: AddUserModalP
             }
         } catch (error) {
             // Form validation failed
+            console.error('Validation error:', error);
         }
     };
 

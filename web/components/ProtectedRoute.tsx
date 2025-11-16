@@ -12,13 +12,13 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, error } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
-      if (!isAuthenticated) {
-        // Redirect to login if not authenticated
+      // Only redirect to login if it's a real authentication error
+      if (!isAuthenticated && error?.message === 'Not authenticated') {
         router.push('/login');
         return;
       }
@@ -29,7 +29,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         router.push('/transfers');
       }
     }
-  }, [isLoading, isAuthenticated, user, requiredRole, router]);
+  }, [isLoading, isAuthenticated, user, requiredRole, router, error]);
 
   if (isLoading) {
     return (
@@ -39,7 +39,8 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     );
   }
 
-  if (!isAuthenticated) {
+  // Only block rendering if it's an authentication error
+  if (!isAuthenticated && error?.message === 'Not authenticated') {
     return null; // Will redirect
   }
 

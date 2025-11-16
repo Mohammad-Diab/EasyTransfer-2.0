@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter, AllExceptionsFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { BigIntInterceptor } from './common/interceptors/bigint.interceptor';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
@@ -26,8 +27,8 @@ async function bootstrap() {
   // Global exception filters
   app.useGlobalFilters(new AllExceptionsFilter(), new HttpExceptionFilter());
 
-  // Global logging interceptor
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  // Global interceptors
+  app.useGlobalInterceptors(new LoggingInterceptor(), new BigIntInterceptor());
 
   // Enable CORS
   const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [

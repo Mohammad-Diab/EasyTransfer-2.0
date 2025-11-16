@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BotClientService } from '../bot/bot-client.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private botClient: BotClientService,
+  ) {}
 
   // System-wide statistics for admin dashboard
   async getSystemStats() {
@@ -321,12 +325,50 @@ export class AdminService {
     return { valid: true };
   }
 
+  // Request OTP for new user registration
+  async requestUserOtp(dto: { telegram_user_id: number }) {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP in database with expiration (5 minutes)
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    
+    await this.prisma.otpCode.create({
+      data: {
+        telegram_user_id: dto.telegram_user_id,
+        code: otp,
+        purpose: 'web_login', // Reuse this purpose for registration
+        expires_at: expiresAt,
+      },
+    });
+
+    // Send OTP via bot
+    try {
+      await this.botClient.sendOtp(dto.telegram_user_id.toString(), otp);
+    } catch (error) {
+      throw new BadRequestException('فشل إرسال رمز التحقق. تأكد من أنك بدأت محادثة مع البوت.');
+    }
+
+    return { message: 'تم إرسال رمز التحقق بنجاح' };
+  }
+
   // Create new user
   async createUser(dto: { name: string; phone: string; telegram_user_id: number; otp: string }) {
-    // Verify OTP via bot
-    // This should call the bot's internal API to verify OTP
-    // For now, we'll create the user directly
-    // TODO: Implement OTP verification with bot
+    // Verify OTP
+    const validOtp = await this.prisma.otpCode.findFirst({
+      where: {
+        telegram_user_id: dto.telegram_user_id,
+        code: dto.otp,
+        purpose: 'web_login',
+        expires_at: { gte: new Date() },
+        used_at: null,
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    if (!validOtp) {
+      throw new BadRequestException('رمز التحقق غير صحيح أو منتهي الصلاحية');
+    }
 
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
@@ -336,6 +378,12 @@ export class AdminService {
     if (existingUser) {
       throw new BadRequestException('هذا المستخدم مسجل بالفعل');
     }
+
+    // Mark OTP as used
+    await this.prisma.otpCode.update({
+      where: { id: validOtp.id },
+      data: { used_at: new Date() },
+    });
 
     // Create user
     const user = await this.prisma.user.create({

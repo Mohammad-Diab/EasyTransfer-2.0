@@ -28,14 +28,25 @@ export function useAuth() {
       try {
         return await api.getMe();
       } catch (error: any) {
-        // If 401, user is not authenticated
-        if (error.message?.includes('401') || error.message?.includes('غير مصرح')) {
+        // Only treat 401/403 as authentication errors
+        const statusMatch = error.message?.match(/status (\d+)/i);
+        const status = statusMatch ? parseInt(statusMatch[1]) : null;
+        
+        if (status === 401 || status === 403 || error.message?.includes('401') || error.message?.includes('غير مصرح')) {
           throw new Error('Not authenticated');
         }
+        // For other errors (500, network, etc.), throw with original message
         throw error;
       }
     },
-    retry: false,
+    retry: (failureCount, error: any) => {
+      // Don't retry on authentication errors
+      if (error.message === 'Not authenticated') {
+        return false;
+      }
+      // Retry other errors up to 2 times
+      return failureCount < 2;
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
   });

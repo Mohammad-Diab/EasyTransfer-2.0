@@ -17,7 +17,8 @@ class API {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(error.message || 'فشل الاتصال بالخادم');
+      const errorMessage = error.message || 'فشل الاتصال بالخادم';
+      throw new Error(`${errorMessage} (status ${response.status})`);
     }
 
     return response.json();
@@ -99,6 +100,13 @@ class API {
     return this.request('/api/admin/users', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async requestUserOtp(telegram_user_id: number) {
+    return this.request('/api/admin/users/request-otp', {
+      method: 'POST',
+      body: JSON.stringify({ telegram_user_id }),
     });
   }
 

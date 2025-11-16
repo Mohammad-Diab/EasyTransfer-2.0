@@ -56,6 +56,11 @@ export class AdminController {
     return this.adminService.verifyTelegramUser(dto);
   }
 
+  @Post('users/request-otp')
+  async requestUserOtp(@Body() dto: { telegram_user_id: number }) {
+    return this.adminService.requestUserOtp(dto);
+  }
+
   // Transfer management endpoints
   @Get('transfers')
   async getAllTransfers(

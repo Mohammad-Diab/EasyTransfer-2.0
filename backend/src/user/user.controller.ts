@@ -28,8 +28,14 @@ export class UserController {
       throw new Error('User not found');
     }
 
-    return {
+    // Convert BigInt to string for JSON serialization
+    const userResponse = {
       ...user,
+      telegram_user_id: user.telegram_user_id?.toString(),
+    };
+
+    return {
+      ...userResponse,
       statistics: stats,
     };
   }
