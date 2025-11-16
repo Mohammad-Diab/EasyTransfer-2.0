@@ -3,8 +3,10 @@ package com.onevertix.easytransferagent.data.repository
 import com.onevertix.easytransferagent.data.api.ApiService
 import com.onevertix.easytransferagent.data.api.RetrofitClient
 import com.onevertix.easytransferagent.data.models.BalanceResult
+import com.onevertix.easytransferagent.data.models.BalanceResultReport
 import com.onevertix.easytransferagent.data.models.TransferJob
 import com.onevertix.easytransferagent.data.models.TransferResult
+import com.onevertix.easytransferagent.data.models.TransferResultReport
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 
 /**

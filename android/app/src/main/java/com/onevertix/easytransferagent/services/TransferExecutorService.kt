@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.onevertix.easytransferagent.MainActivity
-import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.repository.DefaultTransferRepository
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.ussd.UssdExecutor
@@ -52,7 +51,7 @@ class TransferExecutorService : Service() {
         ussdExecutor = UssdExecutor(this)
         rulesRepository = com.onevertix.easytransferagent.data.repository.RulesRepository(this, localPrefs)
         responseParser = rulesRepository.getParser()
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         // Create notification channel
         createNotificationChannel()
@@ -121,7 +120,7 @@ class TransferExecutorService : Service() {
                     delay(pollingInterval)
 
                 } catch (e: Exception) {
-                    Logger.e("Polling error: ${e.message}", TAG, e)
+                    Logger.e("Polling error: ${e.message}", e, TAG)
                     handlePollingError()
                     delay(pollingInterval)
                 }
@@ -171,7 +170,7 @@ class TransferExecutorService : Service() {
             }
         } else {
             val error = result.exceptionOrNull()
-            Logger.e("Failed to fetch jobs: ${error?.message}", TAG, error)
+            Logger.e("Failed to fetch jobs: ${error?.message}", error, TAG)
             handlePollingError()
         }
     }
@@ -267,7 +266,7 @@ class TransferExecutorService : Service() {
                 )
             }
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
-                Logger.e("Transfer execution failed: ${result.message}", TAG)
+                Logger.e("Transfer execution failed: ${result.message}", null, TAG)
                 updateNotification("Transfer error: ${result.message}")
 
                 // Report error to backend
@@ -300,7 +299,9 @@ class TransferExecutorService : Service() {
                 jobId = jobId,
                 status = status,
                 message = message,
-                executedAt = java.time.Instant.now().toString(),
+                executedAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }.format(java.util.Date()),
                 operator = operator,
                 simSlot = simSlot
             )
@@ -310,7 +311,7 @@ class TransferExecutorService : Service() {
             if (result.isSuccess) {
                 Logger.i("Transfer result reported successfully: $requestId", TAG)
             } else {
-                Logger.e("Failed to report transfer result: ${result.exceptionOrNull()?.message}", TAG)
+                Logger.e("Failed to report transfer result: ${result.exceptionOrNull()?.message}", result.exceptionOrNull(), TAG)
                 // TODO: Queue for retry with WorkManager
             }
 
@@ -371,7 +372,7 @@ class TransferExecutorService : Service() {
                 )
             }
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
-                Logger.e("Balance inquiry failed: ${result.message}", TAG)
+                Logger.e("Balance inquiry failed: ${result.message}", null, TAG)
 
                 // Report error
                 reportBalanceResult(
@@ -401,7 +402,9 @@ class TransferExecutorService : Service() {
                 status = status,
                 balance = balance,
                 message = message,
-                executedAt = java.time.Instant.now().toString(),
+                executedAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
+                    timeZone = java.util.TimeZone.getTimeZone("UTC")
+                }.format(java.util.Date()),
                 simSlot = simSlot
             )
 
@@ -410,7 +413,7 @@ class TransferExecutorService : Service() {
             if (result.isSuccess) {
                 Logger.i("Balance result reported successfully: $operator", TAG)
             } else {
-                Logger.e("Failed to report balance result: ${result.exceptionOrNull()?.message}", TAG)
+                Logger.e("Failed to report balance result: ${result.exceptionOrNull()?.message}", result.exceptionOrNull(), TAG)
             }
 
         } catch (e: Exception) {

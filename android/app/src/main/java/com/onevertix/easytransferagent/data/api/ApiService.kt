@@ -33,6 +33,8 @@ interface ApiService {
     suspend fun getPendingJobs(
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String
+    ): Response<List<TransferJob>>
+
     // ========== Transfer Results ==========
 
     @POST("/api/android/transfers/result")
