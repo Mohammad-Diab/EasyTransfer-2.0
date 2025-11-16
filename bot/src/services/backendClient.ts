@@ -97,6 +97,62 @@ class BackendClient {
   }> {
     return this.request('/api/bot/validate-amount', { amount });
   }
+
+  async getHealth(): Promise<{
+    backend: {
+      status: string;
+      timestamp: string;
+    };
+    devices: {
+      connected: boolean;
+      count: number;
+      devices: Array<{
+        id: number;
+        device_id: string;
+        last_active: Date;
+        user: string;
+      }>;
+    };
+  }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+    try {
+      const response = await fetch(`${this.baseURL}/api/bot/health`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.serviceToken}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error('Backend health check failed');
+      }
+
+      return response.json() as Promise<{
+        backend: {
+          status: string;
+          timestamp: string;
+        };
+        devices: {
+          connected: boolean;
+          count: number;
+          devices: Array<{
+            id: number;
+            device_id: string;
+            last_active: Date;
+            user: string;
+          }>;
+        };
+      }>;
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  }
 }
 
 export const backendClient = new BackendClient();

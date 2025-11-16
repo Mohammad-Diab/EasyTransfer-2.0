@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { BotService } from './bot.service';
 import { CreateTransferDto } from '../transfers/dto/create-transfer.dto';
@@ -32,5 +32,10 @@ export class BotController {
       body.telegram_user_id,
       body.operator,
     );
+  }
+
+  @Get('health')
+  async getHealth() {
+    return this.botService.getHealthStatus();
   }
 }

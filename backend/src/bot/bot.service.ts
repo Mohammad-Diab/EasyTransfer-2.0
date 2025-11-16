@@ -71,4 +71,39 @@ export class BotService {
       message: 'Balance inquiry job created',
     };
   }
+
+  async getHealthStatus() {
+    // Get active devices
+    const activeDevices = await this.prisma.device.findMany({
+      where: { status: 'active' },
+      select: {
+        id: true,
+        device_id: true,
+        last_active: true,
+        user: {
+          select: {
+            name: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
+    return {
+      backend: {
+        status: 'online',
+        timestamp: new Date().toISOString(),
+      },
+      devices: {
+        connected: activeDevices.length > 0,
+        count: activeDevices.length,
+        devices: activeDevices.map(device => ({
+          id: device.id,
+          device_id: device.device_id,
+          last_active: device.last_active,
+          user: device.user?.name || device.user?.phone || 'Unknown',
+        })),
+      },
+    };
+  }
 }
