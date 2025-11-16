@@ -27,23 +27,35 @@ Android application for executing USSD money transfers via Syriatel and MTN oper
 
 **Documentation**: [`docs/RUNTIME_PERMISSIONS_COMPLETION.md`](docs/RUNTIME_PERMISSIONS_COMPLETION.md)
 
+#### ✅ Configuration Screen (November 16, 2025)
+- Server URL configuration with HTTPS validation
+- SIM card operator mapping (Syriatel/MTN)
+- USSD password input with encryption
+- Real-time validation and error handling
+- Secure storage integration (LocalPreferences + SecureStorage)
+
+**Documentation**: [`docs/CONFIGURATION_SCREEN_IMPLEMENTATION.md`](docs/CONFIGURATION_SCREEN_IMPLEMENTATION.md)
+
 ### In Progress
 
 Currently ready to implement:
-- [ ] Configuration Screen (Server URL, SIM mapping, USSD password)
 - [ ] Authentication System (Phone + OTP)
 - [ ] USSD Execution Engine
+- [ ] Job Polling Service
 
 ### Project Structure
 
 ```
 app/
 ├── src/main/java/com/onevertix/easytransferagent/
-│   ├── MainActivity.kt                    # ✅ Main entry with permissions
+│   ├── MainActivity.kt                    # ✅ Main entry with navigation
 │   ├── ui/
 │   │   ├── permissions/                   # ✅ Runtime permissions
 │   │   │   ├── PermissionsScreen.kt
 │   │   │   └── PermissionsViewModel.kt
+│   │   ├── config/                        # ✅ Configuration screen
+│   │   │   ├── ConfigScreen.kt
+│   │   │   └── ConfigViewModel.kt
 │   │   ├── theme/                         # ✅ Material Design 3
 │   │   │   ├── Color.kt
 │   │   │   ├── Theme.kt
@@ -60,8 +72,8 @@ app/
 │   │   │   ├── ResultModels.kt
 │   │   │   └── TransferJob.kt
 │   │   └── storage/
-│   │       ├── LocalPreferences.kt
-│   │       └── SecureStorage.kt
+│   │       ├── LocalPreferences.kt        # ✅ Non-sensitive storage
+│   │       └── SecureStorage.kt           # ✅ Encrypted storage
 │   ├── services/
 │   │   └── TransferExecutorService.kt
 │   ├── ussd/
