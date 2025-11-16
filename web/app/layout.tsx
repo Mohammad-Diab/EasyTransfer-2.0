@@ -16,8 +16,11 @@ function AppContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   
-  // Don't show navbar on login page or if not authenticated
-  const showNavbar = pathname !== '/login' && isAuthenticated;
+  // Don't show navbar on login page, if not authenticated, or on transfers/admin pages (they have their own layout)
+  const showNavbar = pathname !== '/login' && 
+                     !pathname.startsWith('/transfers') && 
+                     !pathname.startsWith('/admin') && 
+                     isAuthenticated;
 
   return (
     <Layout className="min-h-screen">
@@ -44,10 +47,23 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 
   return (
     <html lang="ar" dir="rtl">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet" />
+      </head>
       <body>
         <ErrorBoundary>
           <QueryClientProvider client={queryClient}>
-            <ConfigProvider direction="rtl" locale={arEG}>
+            <ConfigProvider 
+              direction="rtl" 
+              locale={arEG}
+              theme={{
+                token: {
+                  fontFamily: "'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+                },
+              }}
+            >
               <AppContent>{children}</AppContent>
             </ConfigProvider>
           </QueryClientProvider>

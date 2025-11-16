@@ -4,10 +4,11 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Spin } from 'antd';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/lib/constants';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'user' | 'admin';
+  requiredRole?: UserRole;
 }
 
 export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
@@ -15,15 +16,16 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Redirect to login if not authenticated
-      router.push('/login');
-    }
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        // Redirect to login if not authenticated
+        router.push('/login');
+        return;
+      }
 
-    if (!isLoading && isAuthenticated && requiredRole) {
-      // Check role requirements
-      if (requiredRole === 'admin' && user?.role !== 'admin') {
+      if (requiredRole === UserRole.ADMIN && user?.role !== UserRole.ADMIN) {
         // Redirect to transfers if user doesn't have admin role
+        console.log('Access denied: User role is', user?.role, 'but admin required');
         router.push('/transfers');
       }
     }
@@ -41,7 +43,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
     return null; // Will redirect
   }
 
-  if (requiredRole === 'admin' && user?.role !== 'admin') {
+  if (requiredRole === UserRole.ADMIN && user?.role !== UserRole.ADMIN) {
     return null; // Will redirect
   }
 

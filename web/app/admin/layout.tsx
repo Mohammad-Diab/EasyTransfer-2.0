@@ -1,6 +1,6 @@
 import AppLayout from '@/components/AppLayout';
 
-export default function TransfersLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

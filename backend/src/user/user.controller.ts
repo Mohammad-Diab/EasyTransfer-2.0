@@ -1,11 +1,15 @@
 import { Controller, Get, UseGuards, Request, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransfersService } from '../transfers/transfers.service';
+import { UserService } from './user.service';
 
 @Controller('api/me')
 @UseGuards(AuthGuard('jwt'))
 export class UserController {
-  constructor(private transfersService: TransfersService) {}
+  constructor(
+    private transfersService: TransfersService,
+    private userService: UserService,
+  ) {}
 
   /**
    * GET /api/me/summary
@@ -15,13 +19,17 @@ export class UserController {
   async getSummary(@Request() req) {
     const userId = req.user?.userId; // Get from JWT payload
 
-    const stats = await this.transfersService.getUserStats(userId);
+    const [user, stats] = await Promise.all([
+      this.userService.getUserById(userId),
+      this.transfersService.getUserStats(userId),
+    ]);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
 
     return {
-      user: {
-        id: userId,
-        // User details will be added when auth is fully enabled
-      },
+      ...user,
       statistics: stats,
     };
   }

@@ -7,7 +7,29 @@
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Override Ant Design font for all components */
+.ant-btn,
+.ant-input,
+.ant-select,
+.ant-table,
+.ant-card,
+.ant-typography,
+.ant-menu,
+.ant-dropdown,
+.ant-modal,
+.ant-form,
+.ant-alert,
+.ant-tag,
+.ant-badge,
+.ant-statistic,
+.ant-pagination,
+.ant-message,
+.ant-notification,
+[class*='ant-'] {
+  font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
 /* Keep numbers LTR */

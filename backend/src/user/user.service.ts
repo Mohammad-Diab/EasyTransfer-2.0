@@ -31,4 +31,19 @@ export class UserService {
 
     return { total, pending, processing, success, failed };
   }
+
+  async getUserById(userId: number) {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        telegram_user_id: true,
+        phone: true,
+        name: true,
+        role: true,
+        status: true,
+        created_at: true,
+      },
+    });
+  }
 }

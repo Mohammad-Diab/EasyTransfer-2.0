@@ -44,7 +44,7 @@ export default function Navbar() {
     // Only admins see System Dashboard / Users
     if (user.role === 'admin') {
       items.push({
-        key: '/admin',
+        key: '/admin/dashboard',
         icon: <DashboardOutlined />,
         label: 'لوحة النظام / المستخدمين',
         onClick: () => {

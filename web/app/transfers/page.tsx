@@ -36,7 +36,7 @@ function TransfersContent() {
 
   const columns = [
     {
-      title: 'ID',
+      title: 'معرف',
       dataIndex: 'id',
       key: 'id',
       width: 80,
@@ -91,7 +91,9 @@ function TransfersContent() {
 
   return (
     <div>
-      <Title level={2}>تحويلاتي</Title>
+      <div className="mb-4">
+        <Title level={2} className="mb-0">تحويلاتي</Title>
+      </div>
 
       {/* Error Alert for Statistics */}
       {statsError && (
@@ -171,8 +173,8 @@ function TransfersContent() {
 
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {/* Filters */}
-          <Row gutter={16}>
-            <Col xs={24} sm={12} md={8}>
+          <Row gutter={16} justify="end">
+            <Col xs={24} sm={12} md={6}>
               <Search
                 placeholder="ابحث برقم الهاتف..."
                 allowClear
@@ -181,7 +183,7 @@ function TransfersContent() {
                 dir="rtl"
               />
             </Col>
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} md={6}>
               <Select
                 placeholder="تصفية حسب الحالة"
                 style={{ width: '100%' }}
@@ -219,7 +221,7 @@ function TransfersContent() {
               total: total,
               showSizeChanger: true,
               showTotal: (total) => (
-                <span dir="ltr" className="font-mono">
+                <span>
                   إجمالي {total} تحويل
                 </span>
               ),

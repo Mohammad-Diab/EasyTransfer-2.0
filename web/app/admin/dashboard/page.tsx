@@ -28,6 +28,7 @@ import { useSystemStats, useAllUsers } from '@/hooks/useTransfers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { UserRole } from '@/lib/constants';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -64,7 +65,7 @@ function DashboardContent() {
 
   const columns = [
     {
-      title: 'ID',
+      title: 'معرف',
       dataIndex: 'id',
       key: 'id',
       width: 80,
@@ -74,12 +75,14 @@ function DashboardContent() {
       title: 'رقم الهاتف',
       dataIndex: 'phone_number',
       key: 'phone_number',
+      width: 160,
       render: (phone: string) => <span dir="ltr" className="font-mono">{phone}</span>,
     },
     {
       title: 'الاسم',
       dataIndex: 'name',
       key: 'name',
+      width: 200,
       render: (name: string | null) => name || '-',
     },
     {
@@ -91,15 +94,6 @@ function DashboardContent() {
         <Tag color={role === 'admin' ? 'red' : 'blue'}>
           {role === 'admin' ? 'مدير' : 'مستخدم'}
         </Tag>
-      ),
-    },
-    {
-      title: 'الفئة',
-      dataIndex: 'tier',
-      key: 'tier',
-      width: 100,
-      render: (tier: string) => (
-        <Tag color="purple">{tier}</Tag>
       ),
     },
     {
@@ -165,8 +159,8 @@ function DashboardContent() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <Title level={2}>لوحة النظام</Title>
+      <div className="mb-4">
+        <Title level={2} className="mb-0">لوحة النظام</Title>
       </div>
 
       {/* Error Alert for Statistics */}
@@ -231,8 +225,18 @@ function DashboardContent() {
         title={
           <div className="flex justify-between items-center">
             <span>إدارة المستخدمين</span>
+            <Search
+              placeholder="ابحث برقم الهاتف، الاسم، أو معرف المستخدم..."
+              allowClear
+              enterButton={<SearchOutlined />}
+              onSearch={handleSearch}
+              dir="rtl"
+              style={{ width: 400 }}
+            />
           </div>
         }
+        headStyle={{ borderBottom: 'none' }}
+        bodyStyle={{ paddingTop: '0px' }}
       >
         {/* Error Alert for Users */}
         {usersError && (
@@ -252,19 +256,6 @@ function DashboardContent() {
         )}
 
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-          {/* Search */}
-          <Row gutter={16}>
-            <Col xs={24} md={12}>
-              <Search
-                placeholder="ابحث برقم الهاتف، الاسم، أو معرف المستخدم..."
-                allowClear
-                enterButton={<SearchOutlined />}
-                onSearch={handleSearch}
-                dir="rtl"
-              />
-            </Col>
-          </Row>
-
           {/* Users Table */}
           <Table
             columns={columns}
@@ -285,7 +276,7 @@ function DashboardContent() {
               total: total,
               showSizeChanger: true,
               showTotal: (total) => (
-                <span dir="ltr" className="font-mono">
+                <span>
                   إجمالي {total} مستخدم
                 </span>
               ),
@@ -305,7 +296,7 @@ function DashboardContent() {
 
 export default function AdminDashboardPage() {
   return (
-    <ProtectedRoute requiredRole="admin">
+    <ProtectedRoute requiredRole={UserRole.ADMIN}>
       <DashboardContent />
     </ProtectedRoute>
   );
