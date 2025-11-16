@@ -1,5 +1,5 @@
 import type { Conversation } from '@grammyjs/conversations';
-import { CommandContext } from 'grammy';
+import { CommandContext, InlineKeyboard } from 'grammy';
 import { backendClient } from '../services/backendClient';
 import { MESSAGES } from '../config/messages';
 import type { MyContext } from '../index';
@@ -45,16 +45,51 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
     return;
   }
 
-  const amount = parseInt(amountStr);
+  const requestedAmount = parseInt(amountStr);
 
-  // Submit to backend
+  // Validate tier
   try {
-    const response = await backendClient.submitTransfer(userId, phone, amount);
+    const tierValidation = await backendClient.validateAmount(requestedAmount);
 
-    if (response.id && response.status) {
-      await ctx.reply(MESSAGES.REQUEST_RECEIVED);
+    if (!tierValidation.valid) {
+      await ctx.reply(MESSAGES.INVALID_TIER);
+      return;
+    }
+
+    const finalAmount = tierValidation.matchedTier || requestedAmount;
+
+    // Create confirmation keyboard
+    const keyboard = new InlineKeyboard()
+      .text('نعم، متابعة', `confirm_${finalAmount}_${phone}`)
+      .text('إلغاء', 'cancel_transfer');
+
+    // Send confirmation message
+    const confirmMessage = requestedAmount === finalAmount
+      ? MESSAGES.CONFIRM_TRANSFER(finalAmount, phone)
+      : MESSAGES.ADJUSTED_AMOUNT(requestedAmount, finalAmount, phone);
+
+    await ctx.reply(confirmMessage, { reply_markup: keyboard });
+
+    // Wait for confirmation
+    const confirmCtx = await conversation.wait();
+
+    // Check if user clicked button
+    if (confirmCtx.callbackQuery?.data?.startsWith('confirm_')) {
+      await confirmCtx.answerCallbackQuery();
+
+      // Submit to backend
+      const response = await backendClient.submitTransfer(userId, phone, finalAmount);
+
+      if (response.id && response.status) {
+        await ctx.reply(MESSAGES.REQUEST_RECEIVED);
+      } else {
+        await ctx.reply(MESSAGES.BACKEND_ERROR);
+      }
+    } else if (confirmCtx.callbackQuery?.data === 'cancel_transfer') {
+      await confirmCtx.answerCallbackQuery();
+      await ctx.reply(MESSAGES.TRANSFER_CANCELLED);
     } else {
-      await ctx.reply(MESSAGES.BACKEND_ERROR);
+      await ctx.reply(MESSAGES.TRANSFER_CANCELLED);
     }
   } catch (error) {
     logger.error('Send conversation error', error, { user_id: userId });
@@ -88,12 +123,28 @@ export async function sendCommand(ctx: CommandContext<MyContext>) {
 
     const amount = parseInt(amountStr);
 
-    // Submit to backend
+    // Validate tier and submit
     try {
-      const response = await backendClient.submitTransfer(userId, phone, amount);
+      const tierValidation = await backendClient.validateAmount(amount);
+
+      if (!tierValidation.valid) {
+        return ctx.reply(MESSAGES.INVALID_TIER);
+      }
+
+      const finalAmount = tierValidation.matchedTier || amount;
+
+      // Submit to backend with validated amount
+      const response = await backendClient.submitTransfer(userId, phone, finalAmount);
 
       if (response.id && response.status) {
-        await ctx.reply(MESSAGES.REQUEST_RECEIVED);
+        // Inform user if amount was adjusted
+        if (amount !== finalAmount) {
+          await ctx.reply(
+            `تم تعديل المبلغ من ${amount} إلى ${finalAmount}\n\n${MESSAGES.REQUEST_RECEIVED}`
+          );
+        } else {
+          await ctx.reply(MESSAGES.REQUEST_RECEIVED);
+        }
       } else {
         await ctx.reply(MESSAGES.BACKEND_ERROR);
       }

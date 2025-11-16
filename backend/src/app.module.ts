@@ -13,6 +13,7 @@ import { TransfersModule } from './transfers/transfers.module';
 import { OperatorsModule } from './operators/operators.module';
 import { TasksModule } from './tasks/tasks.module';
 import { BalanceModule } from './balance/balance.module';
+import { TiersModule } from './tiers/tiers.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { BalanceModule } from './balance/balance.module';
     OperatorsModule,
     TasksModule,
     BalanceModule,
+    TiersModule,
   ],
 })
 export class AppModule {}

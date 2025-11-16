@@ -88,6 +88,15 @@ class BackendClient {
       operator,
     });
   }
+
+  async validateAmount(amount: number): Promise<{
+    valid: boolean;
+    requestedAmount: number;
+    matchedTier: number | null;
+    message: string;
+  }> {
+    return this.request('/api/bot/validate-amount', { amount });
+  }
 }
 
 export const backendClient = new BackendClient();

@@ -16,7 +16,13 @@ export const MESSAGES = {
   ASK_AMOUNT: 'يرجى إدخال المبلغ المراد تحويله:',
   INVALID_PHONE: 'رقم الهاتف غير صالح. يرجى إدخال أرقام فقط.',
   INVALID_AMOUNT: 'المبلغ غير صالح. يرجى إدخال رقم موجب.',
-  
+  INVALID_TIER: 'لا يمكن تحويل هذا المبلغ',
+  CONFIRM_TRANSFER: (amount: number, phone: string) => 
+    `سيتم تحويل ${amount} إلى الرقم ${phone}\n\nهل تريد المتابعة؟`,
+  ADJUSTED_AMOUNT: (requested: number, matched: number, phone: string) =>
+    `المبلغ المطلوب ${requested} غير متوفر.\nأقرب مبلغ متاح هو ${matched}\n\nسيتم تحويل ${matched} إلى الرقم ${phone}\n\nهل تريد المتابعة؟`,
+  TRANSFER_CANCELLED: 'تم إلغاء عملية التحويل.',
+
   // Welcome message
   WELCOME: `مرحباً بك في EasyTransfer 2.0! 👋
 
