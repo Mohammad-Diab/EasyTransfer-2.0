@@ -79,15 +79,41 @@ export class AdminService {
           telegram_user_id: true,
           created_at: true,
           updated_at: true,
+          _count: {
+            select: {
+              transfer_requests: true,
+            },
+          },
         },
       }),
       this.prisma.user.count({ where }),
     ]);
 
+    // Add transfer statistics for each user
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const [successCount, failedCount] = await Promise.all([
+          this.prisma.transferRequest.count({
+            where: { user_id: user.id, status: 'success' },
+          }),
+          this.prisma.transferRequest.count({
+            where: { user_id: user.id, status: 'failed' },
+          }),
+        ]);
+
+        return {
+          ...user,
+          total_transfers: user._count.transfer_requests,
+          successful_transfers: successCount,
+          failed_transfers: failedCount,
+        };
+      })
+    );
+
     const totalPages = Math.ceil(total / limit);
 
     return {
-      users,
+      users: usersWithStats,
       total,
       page,
       limit,
@@ -270,5 +296,58 @@ export class AdminService {
       limit,
       totalPages,
     };
+  }
+
+  // Verify Telegram user exists and matches phone
+  async verifyTelegramUser(dto: { telegram_user_id: number; phone: string }) {
+    // Check if user already exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { telegram_user_id: dto.telegram_user_id },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('هذا المستخدم مسجل بالفعل في النظام');
+    }
+
+    // Check if phone is already used
+    const phoneExists = await this.prisma.user.findUnique({
+      where: { phone: dto.phone },
+    });
+
+    if (phoneExists) {
+      throw new BadRequestException('رقم الهاتف مستخدم بالفعل');
+    }
+
+    return { valid: true };
+  }
+
+  // Create new user
+  async createUser(dto: { name: string; phone: string; telegram_user_id: number; otp: string }) {
+    // Verify OTP via bot
+    // This should call the bot's internal API to verify OTP
+    // For now, we'll create the user directly
+    // TODO: Implement OTP verification with bot
+
+    // Check if user already exists
+    const existingUser = await this.prisma.user.findUnique({
+      where: { telegram_user_id: dto.telegram_user_id },
+    });
+
+    if (existingUser) {
+      throw new BadRequestException('هذا المستخدم مسجل بالفعل');
+    }
+
+    // Create user
+    const user = await this.prisma.user.create({
+      data: {
+        name: dto.name,
+        phone: dto.phone,
+        telegram_user_id: dto.telegram_user_id,
+        role: 'USER',
+        status: 'active',
+      },
+    });
+
+    return user;
   }
 }

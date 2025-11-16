@@ -88,6 +88,20 @@ class API {
     });
   }
 
+  async verifyTelegramUser(telegram_user_id: number, phone: string) {
+    return this.request('/api/admin/users/verify-telegram', {
+      method: 'POST',
+      body: JSON.stringify({ telegram_user_id, phone }),
+    });
+  }
+
+  async createUser(data: { name: string; phone: string; telegram_user_id: number; otp: string }) {
+    return this.request('/api/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async getAllTransfers(page: number = 1, limit: number = 20, status?: string, phone?: string) {
     const params = new URLSearchParams({
       page: page.toString(),

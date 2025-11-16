@@ -29,6 +29,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { UserRole } from '@/lib/constants';
+import AddUserModal from '@/components/AddUserModal';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -37,6 +38,7 @@ function DashboardContent() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState<string | undefined>(undefined);
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useSystemStats();
@@ -225,16 +227,25 @@ function DashboardContent() {
         title={
           <div className="flex justify-between items-center">
             <span>إدارة المستخدمين</span>
-            <Col xs={24} sm={12} md={4}>
+            <Space>
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={() => setAddUserModalOpen(true)}
+              >
+                إضافة مستخدم
+              </Button>
+
               <Search
                 placeholder="ابحث برقم الهاتف، الاسم، أو معرف المستخدم..."
                 allowClear
                 enterButton={<SearchOutlined />}
                 onSearch={handleSearch}
                 dir="rtl"
-                style={{ fontWeight: 'normal' }}
+                style={{ fontWeight: 'normal', width: 240 }}
               />
-            </Col>
+
+            </Space>
           </div>
         }
         styles={{
@@ -294,6 +305,16 @@ function DashboardContent() {
           />
         </Space>
       </Card>
+
+      {/* Add User Modal */}
+      <AddUserModal
+        open={addUserModalOpen}
+        onClose={() => setAddUserModalOpen(false)}
+        onSuccess={() => {
+          refetchUsers();
+          queryClient.invalidateQueries({ queryKey: ['users'] });
+        }}
+      />
     </div>
   );
 }

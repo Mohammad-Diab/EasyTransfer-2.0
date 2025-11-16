@@ -46,6 +46,16 @@ export class AdminController {
     return this.adminService.updateUser(id, dto);
   }
 
+  @Post('users')
+  async createUser(@Body() dto: { name: string; phone: string; telegram_user_id: number; otp: string }) {
+    return this.adminService.createUser(dto);
+  }
+
+  @Post('users/verify-telegram')
+  async verifyTelegramUser(@Body() dto: { telegram_user_id: number; phone: string }) {
+    return this.adminService.verifyTelegramUser(dto);
+  }
+
   // Transfer management endpoints
   @Get('transfers')
   async getAllTransfers(
