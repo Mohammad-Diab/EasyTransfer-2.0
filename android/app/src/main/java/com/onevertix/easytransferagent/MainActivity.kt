@@ -11,6 +11,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
+import com.onevertix.easytransferagent.data.storage.SecureStorage
+import com.onevertix.easytransferagent.data.repository.DefaultAuthRepository
+import com.onevertix.easytransferagent.ui.auth.*
 import com.onevertix.easytransferagent.ui.config.*
 import com.onevertix.easytransferagent.ui.permissions.PermissionsLoadingScreen
 import com.onevertix.easytransferagent.ui.permissions.PermissionsScreen
@@ -76,9 +79,16 @@ fun MainContent(
     val permissionsState by permissionsViewModel.uiState.collectAsState()
     val configState by configViewModel.uiState.collectAsState()
 
+    // Create AuthViewModel with repository
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val authRepo = remember {
+        DefaultAuthRepository(LocalPreferences(context), SecureStorage(context))
+    }
+    val authViewModel = remember { AuthViewModel(authRepo) }
+
     var currentScreen by remember { mutableStateOf(AppScreen.PERMISSIONS) }
 
-    // Navigate based on state
+    // Navigation rules
     LaunchedEffect(permissionsState) {
         if (permissionsState is PermissionsUiState.Granted) {
             currentScreen = AppScreen.CONFIGURATION
@@ -87,7 +97,19 @@ fun MainContent(
 
     LaunchedEffect(configState) {
         if (configState is ConfigUiState.Success) {
-            currentScreen = AppScreen.LOGIN
+            // After config saved, go to auth
+            authViewModel.checkExistingAuth()
+            currentScreen = AppScreen.AUTH_LOGIN
+        }
+    }
+
+    // Observe auth state to navigate
+    val authState by authViewModel.uiState.collectAsState()
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthUiState.Authenticated -> currentScreen = AppScreen.DASHBOARD
+            is AuthUiState.PhoneEntry -> currentScreen = AppScreen.AUTH_LOGIN
+            is AuthUiState.OtpEntry -> currentScreen = AppScreen.AUTH_OTP
         }
     }
 
@@ -97,7 +119,6 @@ fun MainContent(
                 is PermissionsUiState.Loading -> {
                     PermissionsLoadingScreen(modifier = modifier)
                 }
-
                 is PermissionsUiState.Required -> {
                     PermissionsScreen(
                         modifier = modifier,
@@ -107,54 +128,76 @@ fun MainContent(
                         showSettingsButton = state.showSettingsButton
                     )
                 }
-
                 is PermissionsUiState.Granted -> {
-                    // Will navigate to config automatically
                     PermissionsLoadingScreen(modifier = modifier)
                 }
             }
         }
-
         AppScreen.CONFIGURATION -> {
             when (val state = configState) {
-                is ConfigUiState.Loading -> {
-                    ConfigLoadingScreen(modifier = modifier)
-                }
-
-                is ConfigUiState.Editing -> {
-                    ConfigScreen(
-                        modifier = modifier,
-                        uiState = state,
-                        onServerUrlChange = configViewModel::updateServerUrl,
-                        onSim1OperatorChange = configViewModel::updateSim1Operator,
-                        onSim2OperatorChange = configViewModel::updateSim2Operator,
-                        onUssdPasswordChange = configViewModel::updateUssdPassword,
-                        onSaveClick = configViewModel::saveConfiguration
-                    )
-                }
-
-                is ConfigUiState.Success -> {
-                    ConfigSuccessScreen(
-                        modifier = modifier,
-                        onContinue = {
-                            // TODO: Navigate to login/authentication screen
-                            currentScreen = AppScreen.LOGIN
-                        }
-                    )
-                }
+                is ConfigUiState.Loading -> ConfigLoadingScreen(modifier)
+                is ConfigUiState.Editing -> ConfigScreen(
+                    modifier = modifier,
+                    uiState = state,
+                    onServerUrlChange = configViewModel::updateServerUrl,
+                    onSim1OperatorChange = configViewModel::updateSim1Operator,
+                    onSim2OperatorChange = configViewModel::updateSim2Operator,
+                    onUssdPasswordChange = configViewModel::updateUssdPassword,
+                    onSaveClick = configViewModel::saveConfiguration
+                )
+                is ConfigUiState.Success -> ConfigSuccessScreen(
+                    modifier = modifier,
+                    onContinue = {
+                        authViewModel.checkExistingAuth()
+                        currentScreen = AppScreen.AUTH_LOGIN
+                    }
+                )
             }
         }
-
-        AppScreen.LOGIN -> {
-            // TODO: Implement login screen
-            // For now, show a placeholder
-            ConfigSuccessScreen(
-                modifier = modifier,
-                onContinue = {
-                    // Placeholder
-                }
-            )
+        AppScreen.AUTH_LOGIN -> {
+            when (val st = authState) {
+                is AuthUiState.PhoneEntry -> LoginScreen(
+                    modifier = modifier,
+                    state = st,
+                    onPhoneChange = authViewModel::onPhoneChange,
+                    onSubmit = authViewModel::submitPhone
+                )
+                is AuthUiState.OtpEntry -> { /* handled in AUTH_OTP */ }
+                is AuthUiState.Authenticated -> DashboardPlaceholder(modifier)
+            }
         }
+        AppScreen.AUTH_OTP -> {
+            when (val st = authState) {
+                is AuthUiState.OtpEntry -> OtpScreen(
+                    modifier = modifier,
+                    state = st,
+                    onOtpChange = authViewModel::onOtpChange,
+                    onVerify = authViewModel::submitOtp,
+                    onResend = authViewModel::resendOtp,
+                    onEditPhone = authViewModel::backToPhone
+                )
+                is AuthUiState.PhoneEntry -> LoginScreen(
+                    modifier = modifier,
+                    state = st,
+                    onPhoneChange = authViewModel::onPhoneChange,
+                    onSubmit = authViewModel::submitPhone
+                )
+                is AuthUiState.Authenticated -> DashboardPlaceholder(modifier)
+            }
+        }
+        AppScreen.DASHBOARD -> {
+            DashboardPlaceholder(modifier)
+        }
+    }
+}
+
+@Composable
+private fun DashboardPlaceholder(modifier: Modifier = Modifier) {
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = androidx.compose.ui.Alignment.Center
+    ) {
+        androidx.compose.material3.Text(text = "Logged in! Dashboard coming soon")
     }
 }
 
@@ -164,6 +207,7 @@ fun MainContent(
 private enum class AppScreen {
     PERMISSIONS,
     CONFIGURATION,
-    LOGIN
+    AUTH_LOGIN,
+    AUTH_OTP,
+    DASHBOARD
 }
-

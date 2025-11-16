@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.util.UUID
 
 /**
  * Secure storage for sensitive data using EncryptedSharedPreferences
@@ -36,6 +37,23 @@ class SecureStorage(context: Context) {
         encryptedPrefs.edit().remove(KEY_ACCESS_TOKEN).apply()
     }
 
+    // Token Expiry (epoch seconds)
+    fun saveTokenExpiry(expiryTimestamp: Long) {
+        encryptedPrefs.edit().putLong(KEY_TOKEN_EXPIRY, expiryTimestamp).apply()
+    }
+
+    fun getTokenExpiry(): Long {
+        return encryptedPrefs.getLong(KEY_TOKEN_EXPIRY, 0)
+    }
+
+    fun isTokenValid(nowEpochSeconds: Long = System.currentTimeMillis() / 1000): Boolean {
+        val token = getAccessToken()
+        val expiry = getTokenExpiry()
+        if (token.isNullOrBlank() || expiry <= 0) return false
+        // Allow small clock skew margin (120s)
+        return nowEpochSeconds + 120 < expiry
+    }
+
     // Device ID
     fun saveDeviceId(deviceId: String) {
         encryptedPrefs.edit().putString(KEY_DEVICE_ID, deviceId).apply()
@@ -45,17 +63,12 @@ class SecureStorage(context: Context) {
         return encryptedPrefs.getString(KEY_DEVICE_ID, null)
     }
 
-    fun clearDeviceId() {
-        encryptedPrefs.edit().remove(KEY_DEVICE_ID).apply()
-    }
-
-    // Token Expiry
-    fun saveTokenExpiry(expiryTimestamp: Long) {
-        encryptedPrefs.edit().putLong(KEY_TOKEN_EXPIRY, expiryTimestamp).apply()
-    }
-
-    fun getTokenExpiry(): Long {
-        return encryptedPrefs.getLong(KEY_TOKEN_EXPIRY, 0)
+    fun getOrCreateDeviceId(): String {
+        val existing = getDeviceId()
+        if (!existing.isNullOrBlank()) return existing
+        val newId = "android_" + UUID.randomUUID().toString()
+        saveDeviceId(newId)
+        return newId
     }
 
     // USSD Password
@@ -94,4 +107,3 @@ class SecureStorage(context: Context) {
         private const val KEY_USER_ID = "user_id"
     }
 }
-
