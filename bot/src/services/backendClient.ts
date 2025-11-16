@@ -26,7 +26,7 @@ class BackendClient {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Bot-Token': this.serviceToken,
+          'Authorization': `Bearer ${this.serviceToken}`,
         },
         body: JSON.stringify(data),
         signal: controller.signal,

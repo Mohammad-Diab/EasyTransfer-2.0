@@ -70,7 +70,8 @@ export async function sendCommand(ctx: CommandContext<MyContext>) {
   }
 
   // Parse command arguments
-  const args = ctx.match?.toString().trim().split(/\s+/) || [];
+  const text = ctx.match?.toString().trim() || '';
+  const args = text ? text.split(/\s+/) : [];
 
   if (args.length === 2) {
     // Shortcut mode: /send <amount> <phone>
