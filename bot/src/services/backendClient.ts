@@ -55,7 +55,7 @@ class BackendClient {
     }
   }
 
-  async authorize(telegramUserId: number): Promise<{ allowed: boolean; message?: string }> {
+  async authorize(telegramUserId: number): Promise<{ allowed: boolean; message?: string, user_id?: number }> {
     return this.request('/api/bot/authorize', { telegram_user_id: telegramUserId });
   }
 

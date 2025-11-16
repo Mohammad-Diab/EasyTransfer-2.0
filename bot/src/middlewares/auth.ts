@@ -19,8 +19,12 @@ export async function authMiddleware(ctx: Context, next: NextFunction) {
   try {
     const auth = await backendClient.authorize(userId);
 
-    if (!auth.allowed) {
+    if (!auth.user_id) {
       return ctx.reply(MESSAGES.UNAUTHORIZED);
+    }
+    
+    if (!auth.allowed) {
+      return ctx.reply(MESSAGES.DISABLED_ACCOUNT);
     }
 
     // User is authorized, proceed

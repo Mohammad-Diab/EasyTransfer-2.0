@@ -84,19 +84,19 @@ function DashboardContent() {
       width: 80,
       render: (id: number) => <span dir="ltr" className="font-mono">{id}</span>,
     },
+        {
+      title: 'الاسم',
+      dataIndex: 'name',
+      key: 'name',
+      width: 200,
+      render: (name: string | null) => name || '-',
+    },
     {
       title: 'رقم الهاتف',
       dataIndex: 'phone',
       key: 'phone',
       width: 160,
       render: (phone: string) => <span dir="ltr" className="font-mono">{phone}</span>,
-    },
-    {
-      title: 'الاسم',
-      dataIndex: 'name',
-      key: 'name',
-      width: 200,
-      render: (name: string | null) => name || '-',
     },
     {
       title: 'الدور',

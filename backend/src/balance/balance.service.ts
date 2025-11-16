@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { MESSAGES } from '../common/constants/messages';
 
 export interface BalanceJob {
   jobId: string;
@@ -167,7 +168,7 @@ export class BalanceService {
         await this.botClientService.notifyBalanceResult(
           job.telegramUserId,
           'timeout',
-          'انتهاء المهلة. لم يتم استلام أي رد خلال 60 ثانية.',
+          MESSAGES.BALANCE_TIMEOUT,
         );
       } catch (error) {
         this.logger.error(

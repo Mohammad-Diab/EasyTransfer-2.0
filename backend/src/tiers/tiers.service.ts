@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MESSAGES } from '../common/constants/messages';
 
 export interface TierValidationResult {
   valid: boolean;
@@ -65,7 +66,7 @@ export class TiersService {
       valid: false,
       requestedAmount: amount,
       matchedTier: null,
-      message: 'لا يمكن تحويل هذا المبلغ',
+      message: MESSAGES.AMOUNT_NOT_ALLOWED,
     };
   }
 

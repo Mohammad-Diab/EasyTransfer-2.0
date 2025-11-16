@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BotClientService } from '../bot/bot-client.service';
+import { MESSAGES } from '../common/constants/messages';
 
 @Injectable()
 export class AdminService {
@@ -142,7 +143,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundException('المستخدم غير موجود');
+      throw new NotFoundException(MESSAGES.USER_NOT_FOUND);
     }
 
     return user;
@@ -153,12 +154,12 @@ export class AdminService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      throw new NotFoundException('المستخدم غير موجود');
+      throw new NotFoundException(MESSAGES.USER_NOT_FOUND);
     }
 
     // Prevent disabling admin accounts
     if (user.role === 'ADMIN') {
-      throw new BadRequestException('لا يمكن تعطيل حساب المدير');
+      throw new BadRequestException(MESSAGES.CANNOT_DISABLE_ADMIN);
     }
 
     const newStatus = user.status === 'active' ? 'inactive' : 'active';
@@ -174,7 +175,7 @@ export class AdminService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      throw new NotFoundException('المستخدم غير موجود');
+      throw new NotFoundException(MESSAGES.USER_NOT_FOUND);
     }
 
     return this.prisma.user.update({
@@ -256,7 +257,7 @@ export class AdminService {
     });
 
     if (!transfer) {
-      throw new NotFoundException('طلب التحويل غير موجود');
+      throw new NotFoundException(MESSAGES.TRANSFER_NOT_FOUND);
     }
 
     return transfer;
@@ -315,7 +316,7 @@ export class AdminService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('هذا المستخدم مسجل بالفعل في النظام');
+      throw new BadRequestException(MESSAGES.USER_ALREADY_EXISTS);
     }
 
     // Check if phone is already used
@@ -324,7 +325,7 @@ export class AdminService {
     });
 
     if (phoneExists) {
-      throw new BadRequestException('رقم الهاتف مستخدم بالفعل');
+      throw new BadRequestException(MESSAGES.PHONE_ALREADY_EXISTS);
     }
 
     return { valid: true };
@@ -351,10 +352,10 @@ export class AdminService {
     try {
       await this.botClient.sendOtp(dto.telegram_user_id.toString(), otp);
     } catch (error) {
-      throw new BadRequestException('فشل إرسال رمز التحقق. تأكد من أنك بدأت محادثة مع البوت.');
+      throw new BadRequestException(MESSAGES.OTP_SEND_FAILED);
     }
 
-    return { message: 'تم إرسال رمز التحقق بنجاح' };
+    return { message: MESSAGES.OTP_SENT_SUCCESS };
   }
 
   // Create new user
@@ -372,7 +373,7 @@ export class AdminService {
     });
 
     if (!validOtp) {
-      throw new BadRequestException('رمز التحقق غير صحيح أو منتهي الصلاحية');
+      throw new BadRequestException(MESSAGES.OTP_INVALID_OR_EXPIRED);
     }
 
     // Check if user already exists
@@ -381,7 +382,7 @@ export class AdminService {
     });
 
     if (existingUser) {
-      throw new BadRequestException('هذا المستخدم مسجل بالفعل');
+      throw new BadRequestException(MESSAGES.USER_ALREADY_REGISTERED);
     }
 
     // Mark OTP as used

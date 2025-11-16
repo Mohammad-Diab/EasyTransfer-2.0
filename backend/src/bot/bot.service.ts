@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TransfersService } from '../transfers/transfers.service';
 import { BalanceService } from '../balance/balance.service';
+import { MESSAGES } from '../common/constants/messages';
 
 @Injectable()
 export class BotService {
@@ -29,11 +30,11 @@ export class BotService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
     if (user.status !== 'active') {
-      throw new UnauthorizedException('حسابك معطل يرجى التواصل مع مدير النظام');
+      throw new UnauthorizedException(MESSAGES.ACCOUNT_DISABLED);
     }
 
     // Use TransfersService to create transfer with all business rules
@@ -50,11 +51,11 @@ export class BotService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('عذراً، لا تملك صلاحية استخدام هذا البوت.');
+      throw new UnauthorizedException(MESSAGES.UNAUTHORIZED);
     }
 
     if (user.status !== 'active') {
-      throw new UnauthorizedException('حسابك معطل يرجى التواصل مع مدير النظام');
+      throw new UnauthorizedException(MESSAGES.ACCOUNT_DISABLED);
     }
 
     // Create in-memory balance job

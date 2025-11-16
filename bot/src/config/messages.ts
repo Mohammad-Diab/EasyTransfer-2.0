@@ -1,5 +1,6 @@
 export const MESSAGES = {
   UNAUTHORIZED: 'عذراً، لا تملك صلاحية استخدام هذا البوت.',
+  DISABLED_ACCOUNT: 'حسابك معطل يرجى التواصل مع مدير النظام.',
   REQUEST_RECEIVED: 'تم استلام طلبك، وسيتم تنفيذ التحويل قريباً.',
   INVALID_FORMAT: 'يرجى استخدام الصيغة: /send <amount> <phone>',
   BACKEND_ERROR: 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.',
