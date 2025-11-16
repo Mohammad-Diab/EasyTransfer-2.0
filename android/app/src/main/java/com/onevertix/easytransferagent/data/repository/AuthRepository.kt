@@ -22,6 +22,14 @@ class DefaultAuthRepository(
     private val secure: SecureStorage
 ) : AuthRepository {
 
+    init {
+        // Set up auth providers for RetrofitClient
+        RetrofitClient.setAuthProviders(
+            tokenProvider = { secure.getAccessToken() },
+            deviceIdProvider = { secure.getDeviceId() }
+        )
+    }
+
     private fun api(): ApiService {
         val baseUrl = localPrefs.getServerUrl() ?: throw IllegalStateException("Server URL not configured")
         return RetrofitClient.getClient(baseUrl)
@@ -56,6 +64,8 @@ class DefaultAuthRepository(
             secure.saveTokenExpiry((System.currentTimeMillis() / 1000) + body.expiresIn)
             secure.saveUserId(body.userId)
             secure.saveDeviceId(body.deviceId)
+
+            // Auth providers are already set in init, token is now available
             Result.success(body)
         } else {
             Result.failure(Exception("Failed to verify OTP: ${response.code()}"))
@@ -66,9 +76,7 @@ class DefaultAuthRepository(
         val token = secure.getAccessToken() ?: return Result.success(Unit)
         val deviceId = secure.getDeviceId().orEmpty()
         val resp = api().logout("Bearer $token", deviceId)
-        if (!resp.isSuccessful) {
-            // Still clear local auth even if server failed
-        }
+        // Clear local auth even if server request failed
         secure.clearAccessToken()
         secure.saveTokenExpiry(0)
         return Result.success(Unit)

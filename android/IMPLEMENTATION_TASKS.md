@@ -203,10 +203,199 @@ Implement secure storage using EncryptedSharedPreferences for sensitive data (US
 ---
 
 ## Task 3: Authentication System (Phone + OTP)
-**Status**: [⏳] In Progress (Next Task)  
+**Status**: [✅] Completed (November 16, 2025)  
 **Priority**: Critical  
 **Estimated Effort**: Large  
-**Started**: November 16, 2025
+**Actual Effort**: Large  
+**Completed By**: Implementation Team
+
+### Description
+Implement two-step authentication flow: phone number submission and OTP verification. Create login UI screens for phone input and OTP entry. Build API client using Retrofit to communicate with backend authentication endpoints (request-otp, verify-otp). Handle OTP delivery via Telegram (backend sends OTP to user's Telegram). Store access token (1-3 months validity) and device ID securely after successful authentication. Implement token expiration handling and logout functionality. Ensure single device policy is respected (backend revokes old device on new login).
+
+### Deliverables
+- [x] AuthViewModel for authentication state management
+- [x] LoginScreen with phone number input (Compose UI)
+- [x] OTP entry screen with 6-digit input
+- [x] Validation utilities for Syrian phone numbers and OTP
+- [x] Retrofit ApiService with auth endpoints (request-otp, verify-otp, logout)
+- [x] AuthRepository for auth operations abstraction
+- [x] Phone number validation (Syrian format +9639XXXXXXXX or 09XXXXXXXX)
+- [x] OTP request API call implementation
+- [x] OTP verification API call implementation
+- [x] Token storage (access_token, device_id, expires_in, user_id)
+- [x] Token expiration detection and handling (isTokenValid)
+- [x] Device ID generation and persistence (UUID-based)
+- [x] Logout functionality (token invalidation)
+- [x] Error handling for auth failures
+- [x] Loading states and user feedback
+- [x] Resend OTP with 60-second countdown timer
+- [x] Navigation integration (Permissions → Config → Auth → Dashboard)
+
+### Acceptance Criteria
+- ✅ User can enter phone number and request OTP
+- ✅ Backend sends OTP via Telegram (user receives in Telegram chat)
+- ✅ User can enter OTP and verify
+- ✅ Valid OTP returns access token and device ID
+- ✅ Tokens stored securely in EncryptedSharedPreferences
+- ✅ Token expiration handled gracefully (isTokenValid with 120s clock skew)
+- ✅ Logout invalidates token on backend
+- ✅ Clear error messages for failed authentication (Arabic)
+- ✅ **BUILD SUCCESSFUL** - Verified November 16, 2025
+
+### Implementation Details
+- **Validation**: `utils/Validation.kt`
+  - Syrian phone regex validation
+  - E.164 normalization (+9639XXXXXXXX)
+  - 6-digit OTP validation
+- **AuthRepository**: `data/repository/AuthRepository.kt`
+  - Interface + DefaultAuthRepository implementation
+  - Request OTP, verify OTP, logout, isLoggedIn
+  - Token persistence on successful verification
+- **AuthViewModel**: `ui/auth/AuthViewModel.kt`
+  - StateFlow-based states: PhoneEntry, OtpEntry, Authenticated
+  - Event handlers: onPhoneChange, submitPhone, onOtpChange, submitOtp, resendOtp, backToPhone
+  - 60-second countdown timer for resend OTP
+- **LoginScreen** & **OtpScreen**: Material Design 3 Compose UI
+  - Phone input with validation
+  - 6-digit OTP entry
+  - Loading states, inline errors
+  - Resend button with countdown
+- **SecureStorage enhancements**:
+  - isTokenValid with clock skew tolerance
+  - getOrCreateDeviceId (persisted UUID)
+
+### Documentation
+- ✅ Implementation fully integrated into navigation flow
+- ✅ All endpoints wired to backend API
+
+### Notes
+- ✅ Access token validity: 1-3 months (backend decides via expires_in)
+- ✅ Backend enforces one device per user (device_id sent on verify)
+- ✅ Bearer token authentication ready for API calls (via AuthInterceptor in Task 4)
+- ✅ Arabic error messages implemented
+
+---
+
+## Task 4: Backend API Client & Network Layer
+**Status**: [✅] Completed (November 16, 2025)  
+**Priority**: Critical  
+**Estimated Effort**: Medium  
+**Actual Effort**: Medium  
+**Completed By**: Implementation Team
+
+### Description
+Create a centralized API client using Retrofit and OkHttp for all backend communication. Implement Bearer token authentication interceptor that adds access token to all requests. Build data models for API requests/responses (TransferJob, AuthResponse, ResultReport) using Moshi for JSON parsing. Configure OkHttp with timeouts, logging interceptor (safe logs only), and optional certificate pinning for security. Implement error handling for network failures, timeouts, and HTTP errors. Create repository classes to abstract API calls from ViewModels.
+
+### Deliverables
+- [x] RetrofitClient singleton with Retrofit
+- [x] OkHttpClient configuration (30s timeouts for connect/read/write)
+- [x] AuthInterceptor - Bearer token authentication interceptor
+- [x] SafeLoggingInterceptor - Logging with sensitive data redaction
+- [x] Moshi JSON converters with KotlinJsonAdapterFactory
+- [x] Data models: TransferJob, AuthResponse, ResultReport already implemented
+- [x] ApiService interface with all endpoints (auth, transfers, jobs, health)
+- [x] AuthRepository for authentication operations
+- [x] TransferRepository for job polling and result reporting
+- [x] Error handling for network failures (Result<T> pattern)
+- [x] HTTPS enforcement validation (in configuration)
+- [x] Auth provider pattern for dynamic token injection
+
+### Acceptance Criteria
+- ✅ All API calls use Bearer token authentication (via AuthInterceptor)
+- ✅ Access token automatically added to request headers
+- ✅ X-Device-ID header automatically added to all authenticated requests
+- ✅ Network errors handled gracefully with Result wrapper
+- ✅ Timeouts configured properly (30 seconds)
+- ✅ Logging does NOT expose tokens, passwords, or USSD codes
+- ✅ Repository pattern cleanly abstracts API calls
+- ✅ **BUILD SUCCESSFUL** - Verified November 16, 2025
+
+### Implementation Details
+
+**1. AuthInterceptor** (`data/api/AuthInterceptor.kt`)
+- Adds `Authorization: Bearer {token}` header
+- Adds `X-Device-ID: {deviceId}` header
+- Uses provider lambdas for dynamic token/deviceId retrieval
+- Automatically applied to all requests when auth providers are set
+
+**2. SafeLoggingInterceptor** (`data/api/SafeLoggingInterceptor.kt`)
+- Custom HttpLoggingInterceptor.Logger implementation
+- Redacts sensitive fields:
+  - Authorization headers → `[REDACTED]`
+  - X-Device-ID headers → `[REDACTED]`
+  - JSON fields: password, ussd_password, access_token, otp
+  - Phone numbers partially masked: `09XX******`
+- Only active in DEBUG builds
+- Uses Android Log.d for output
+
+**3. RetrofitClient** (`data/api/RetrofitClient.kt`)
+- Updated with `setAuthProviders()` method
+- Accepts tokenProvider and deviceIdProvider lambdas
+- Rebuilds client when providers change
+- Automatically includes:
+  - AuthInterceptor (when providers set)
+  - SafeLoggingInterceptor (DEBUG only)
+- 30-second timeouts for all operations
+- Moshi with KotlinJsonAdapterFactory for JSON
+
+**4. AuthRepository** (`data/repository/AuthRepository.kt`)
+- Sets auth providers in init block
+- Provider lambdas read from SecureStorage
+- Token automatically available after successful verifyOtp
+- Clean interface with Result<T> return types
+
+**5. TransferRepository** (`data/repository/TransferRepository.kt`)
+- getPendingJobs() - Fetch pending transfer jobs
+- reportTransferResult() - Report transfer execution result
+- reportBalanceResult() - Report balance check result
+- checkHealth() - Health check endpoint
+- All methods use Result<T> for error handling
+- Auth headers added automatically by interceptor
+
+### Security Features
+- ✅ **No sensitive data in logs**: Tokens, passwords, USSD codes redacted
+- ✅ **Bearer token auth**: Automatic header injection
+- ✅ **Phone number masking**: Partial redaction in logs (09XX******)
+- ✅ **HTTPS enforcement**: Validated in configuration screen
+- ✅ **Secure token storage**: EncryptedSharedPreferences
+- ✅ **Dynamic auth**: Token provider pattern allows real-time updates
+
+### API Endpoints Covered
+```
+Authentication:
+- POST /api/android/auth/request-otp
+- POST /api/android/auth/verify-otp
+- POST /api/android/auth/logout
+
+Transfers:
+- GET /api/android/jobs/pending
+- POST /api/android/transfers/result
+- POST /api/android/balance/result
+
+Health:
+- GET /api/android/status
+```
+
+### Configuration
+- **Timeouts**: 30 seconds (connect, read, write)
+- **Logging**: SafeLoggingInterceptor (DEBUG builds only)
+- **Auth**: Automatic Bearer token + X-Device-ID headers
+- **Base URL**: Dynamic from LocalPreferences (config screen)
+- **Moshi**: KotlinJsonAdapterFactory for data class support
+
+### Documentation
+- ✅ Auth providers configured in AuthRepository init
+- ✅ All repositories use RetrofitClient
+- ✅ Safe logging prevents credential leakage
+
+### Notes
+- ✅ "Authorization: Bearer <token>" header automatically added
+- ✅ "X-Device-ID: <device_id>" header automatically added  
+- ✅ OkHttp logging interceptor used for debugging (safe variant)
+- ✅ NEVER logs full request bodies with sensitive data
+- ✅ Repository pattern allows easy mocking for tests
+
+---
 
 ### Description
 Implement two-step authentication flow: phone number submission and OTP verification. Create login UI screens for phone input and OTP entry. Build API client using Retrofit to communicate with backend authentication endpoints (request-otp, verify-otp). Handle OTP delivery via Telegram (backend sends OTP to user's Telegram). Store access token (1-3 months validity) and device ID securely after successful authentication. Implement token expiration handling and logout functionality. Ensure single device policy is respected (backend revokes old device on new login).
@@ -525,23 +714,23 @@ Conduct comprehensive security audit of the entire application. Ensure all sensi
 **Last Updated**: November 16, 2025
 
 **Total Tasks**: 10  
-**Completed**: 2 ✅  
-**In Progress**: 1 ⏳  
-**Not Started**: 7  
+**Completed**: 4 ✅  
+**In Progress**: 0 ⏳  
+**Not Started**: 6  
 **Blocked**: 0  
 
-**Overall Completion**: 20%
+**Overall Completion**: 40%
 
 ### Completed Tasks ✅
 1. ✅ **Task 1** - Project Setup & Core Architecture (November 16, 2025)
 2. ✅ **Task 2** - Secure Storage & Configuration Management (November 16, 2025)
+3. ✅ **Task 3** - Authentication System (Phone + OTP) (November 16, 2025)
+4. ✅ **Task 4** - Backend API Client & Network Layer (November 16, 2025)
 
-### Current Task ⏳
-3. ⏳ **Task 3** - Authentication System (Phone + OTP) - **IN PROGRESS**
+### Next Task ⏭️
+5. **Task 5** - Job Polling & Short Polling Strategy - **READY TO START**
 
 ### Upcoming Tasks
-4. **Task 4** - Backend API Client & Network Layer
-5. **Task 5** - Job Polling & Short Polling Strategy
 6. **Task 6** - USSD Execution Engine & Dual SIM Support
 7. **Task 7** - Operator Rules & Response Parsing
 8. **Task 8** - Result Reporting & Backend Communication
@@ -550,8 +739,8 @@ Conduct comprehensive security audit of the entire application. Ensure all sensi
 
 ### Build Status
 - **Last Build**: ✅ SUCCESS (November 16, 2025)
-- **Build Time**: 22 seconds
-- **Warnings**: Minor deprecation warnings (acceptable)
+- **Build Time**: ~20 seconds
+- **Warnings**: Minor unused class warnings (expected)
 - **Errors**: None
 
 ### Key Achievements
@@ -559,12 +748,15 @@ Conduct comprehensive security audit of the entire application. Ensure all sensi
 - ✅ Configuration screen with server URL, SIM mapping, USSD password
 - ✅ Secure storage with AES256_GCM encryption
 - ✅ Material Design 3 UI with Jetpack Compose
-- ✅ Multi-screen navigation flow
+- ✅ Multi-screen navigation flow (Permissions → Config → Auth → Dashboard)
+- ✅ **Authentication system with phone + OTP**
+- ✅ **Backend API client with automatic auth headers**
+- ✅ **Safe logging that redacts sensitive data**
+- ✅ **Repository pattern for clean architecture**
 - ✅ MVVM architecture with StateFlow
-- ✅ Comprehensive documentation created
 
 ### Next Milestone
-**Authentication System** - Implement phone number + OTP login flow with backend integration
+**Job Polling Service** - Implement foreground service with short polling (3-5s interval) to fetch pending transfer jobs from backend
 
 ---
 
@@ -572,9 +764,9 @@ Conduct comprehensive security audit of the entire application. Ensure all sensi
 
 1. ✅ **Task 1** - Project Setup & Core Architecture (Foundation) - **COMPLETED**
 2. ✅ **Task 2** - Secure Storage & Configuration Management (Security Foundation) - **COMPLETED**
-3. ⏳ **Task 3** - Authentication System (Phone + OTP) (User Access) - **IN PROGRESS**
-4. **Task 4** - Backend API Client & Network Layer (Infrastructure) - **NEXT**
-5. **Task 5** - Job Polling & Short Polling Strategy (Core Execution)
+3. ✅ **Task 3** - Authentication System (Phone + OTP) (User Access) - **COMPLETED**
+4. ✅ **Task 4** - Backend API Client & Network Layer (Infrastructure) - **COMPLETED**
+5. **Task 5** - Job Polling & Short Polling Strategy (Core Execution) - **NEXT**
 6. **Task 6** - USSD Execution Engine & Dual SIM Support (Core Execution)
 7. **Task 7** - Operator Rules & Response Parsing (Enhancement)
 8. **Task 8** - Result Reporting & Backend Communication (Core Execution)

@@ -10,14 +10,35 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Retrofit client builder for API communication
+ * Retrofit client builder for API communication with authentication support
  */
 object RetrofitClient {
 
     private var retrofit: Retrofit? = null
+    private var currentBaseUrl: String? = null
+
+    // Token and Device ID providers for authentication
+    private var tokenProvider: (() -> String?)? = null
+    private var deviceIdProvider: (() -> String?)? = null
+
+    /**
+     * Set providers for authentication headers
+     */
+    fun setAuthProviders(
+        tokenProvider: () -> String?,
+        deviceIdProvider: () -> String?
+    ) {
+        this.tokenProvider = tokenProvider
+        this.deviceIdProvider = deviceIdProvider
+        // Reset client to rebuild with new providers
+        if (currentBaseUrl != null) {
+            resetClient()
+        }
+    }
 
     fun getClient(baseUrl: String): ApiService {
-        if (retrofit == null || retrofit?.baseUrl().toString() != baseUrl) {
+        if (retrofit == null || currentBaseUrl != baseUrl) {
+            currentBaseUrl = baseUrl
             retrofit = buildRetrofit(baseUrl)
         }
         return retrofit!!.create(ApiService::class.java)
@@ -32,7 +53,20 @@ object RetrofitClient {
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(createLoggingInterceptor())
+            .apply {
+                // Add authentication interceptor if providers are set
+                if (tokenProvider != null && deviceIdProvider != null) {
+                    addInterceptor(
+                        AuthInterceptor(
+                            tokenProvider = tokenProvider!!,
+                            deviceIdProvider = deviceIdProvider!!
+                        )
+                    )
+                }
+
+                // Add safe logging interceptor
+                addInterceptor(createSafeLoggingInterceptor())
+            }
             .build()
 
         return Retrofit.Builder()
@@ -42,12 +76,12 @@ object RetrofitClient {
             .build()
     }
 
-    private fun createLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.NONE
+    private fun createSafeLoggingInterceptor(): HttpLoggingInterceptor {
+        return if (BuildConfig.DEBUG) {
+            SafeLoggingInterceptorFactory.create(HttpLoggingInterceptor.Level.BODY)
+        } else {
+            HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.NONE
             }
         }
     }
