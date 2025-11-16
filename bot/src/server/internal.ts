@@ -126,6 +126,47 @@ app.post('/internal/send-otp', async (req: Request, res: Response) => {
   }
 });
 
+// POST /internal/notify-balance - Balance inquiry result notification
+app.post('/internal/notify-balance', async (req: Request, res: Response) => {
+  try {
+    const { telegram_user_id, status, message } = req.body;
+
+    // Validate payload
+    if (!telegram_user_id || !status || !message) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Get bot instance from global
+    const bot: Bot<MyContext> = (global as any).botInstance;
+    if (!bot) {
+      logger.error('Bot instance not available in notify-balance endpoint');
+      return res.status(500).json({ error: 'Bot not initialized' });
+    }
+
+    // Format message based on status
+    let notificationMessage: string;
+    if (status === 'success') {
+      notificationMessage = MESSAGES.BALANCE_SUCCESS(message);
+    } else if (status === 'failed') {
+      notificationMessage = MESSAGES.BALANCE_FAILED(message);
+    } else if (status === 'timeout') {
+      notificationMessage = MESSAGES.BALANCE_TIMEOUT;
+    } else {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    // Send notification to user
+    await bot.api.sendMessage(telegram_user_id, notificationMessage);
+
+    logger.notificationSent('balance', telegram_user_id, { status });
+
+    res.json({ success: true, message: 'Balance notification sent' });
+  } catch (error: any) {
+    logger.error('Error sending balance notification', error);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+});
+
 // Health check endpoint (no auth required)
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', service: 'bot-internal-server' });
@@ -145,7 +186,7 @@ export function startInternalServer(bot: Bot<MyContext>) {
   app.listen(config.internalPort, () => {
     logger.info('Internal server started', {
       port: config.internalPort,
-      endpoints: ['/internal/notify-result', '/internal/send-otp', '/bot/webhook'],
+      endpoints: ['/internal/notify-result', '/internal/send-otp', '/internal/notify-balance', '/bot/webhook'],
     });
   });
 }

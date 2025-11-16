@@ -3,5 +3,12 @@ import { MESSAGES } from '../config/messages';
 import type { MyContext } from '../index';
 
 export async function startCommand(ctx: CommandContext<MyContext>) {
-  await ctx.reply(MESSAGES.WELCOME, { parse_mode: 'Markdown' });
+  const user = ctx.from;
+  const name = [user?.first_name, user?.last_name].filter(Boolean).join(' ');
+  const username = user?.username ? `@${user.username}` : '-';
+  const telegramId = user?.id || 0;
+  
+  await ctx.reply(
+    MESSAGES.START_WITH_USER_INFO(name, username, telegramId)
+  );
 }

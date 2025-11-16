@@ -74,6 +74,20 @@ class BackendClient {
       amount,
     });
   }
+
+  async submitBalanceJob(
+    telegramUserId: number,
+    operator: 'syriatel' | 'mtn'
+  ): Promise<{
+    job_id: string;
+    status: string;
+    message: string;
+  }> {
+    return this.request('/api/bot/balance', {
+      telegram_user_id: telegramUserId,
+      operator,
+    });
+  }
 }
 
 export const backendClient = new BackendClient();

@@ -105,7 +105,7 @@ class Logger {
   /**
    * Log notification sent (without OTP code or sensitive details)
    */
-  notificationSent(type: 'transfer' | 'otp', userId: number, details?: any): void {
+  notificationSent(type: 'transfer' | 'otp' | 'balance', userId: number, details?: any): void {
     this.info(`Notification sent: ${type}`, {
       user_id: userId,
       ...this.sanitizeContext(details || {}),

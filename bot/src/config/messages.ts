@@ -33,4 +33,23 @@ export const MESSAGES = {
 /send 1000 0912345678
 
 للمساعدة: /help`,
+  
+  // Enhanced welcome with user info from Telegram
+  START_WITH_USER_INFO: (name: string, username: string, telegramId: number) => `مرحباً بك في EasyTransfer 2.0! 👋
+
+معلومات حسابك:
+الاسم: ${name}
+اسم المستخدم: ${username}
+معرف تيليجرام: ${telegramId}
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+📱 الطريقة التفاعلية: /send
+⚡ الطريقة السريعة: /send <المبلغ> <رقم الهاتف>
+
+للاستعلام عن الرصيد: /balance`,
+  
+  // Balance inquiry messages
+  BALANCE_SUCCESS: (message: string) => `💰 ${message}`,
+  BALANCE_FAILED: (message: string) => `❌ فشل الاستعلام عن الرصيد. ${message}`,
+  BALANCE_TIMEOUT: '⌛ انتهاء المهلة. لم يتم استلام أي رد خلال 60 ثانية.',
 };
