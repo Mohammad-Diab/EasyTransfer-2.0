@@ -46,6 +46,7 @@ function TransfersContent() {
       title: 'رقم المستلم',
       dataIndex: 'recipient_phone',
       key: 'recipient_phone',
+      width: 160,
       render: (phone: string) => <span dir="ltr" className="font-mono">{phone}</span>,
     },
     {
