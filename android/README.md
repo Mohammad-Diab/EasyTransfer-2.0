@@ -1,6 +1,76 @@
-# Android Project Structure
+# EasyTransfer Android App
 
-This is the Android app for EasyTransfer 2.0 - USSD execution agent.
+**USSD Execution Agent for Money Transfers**
+
+---
+
+## 📱 Project Overview
+
+Android application for executing USSD money transfers via Syriatel and MTN operators. Acts as an execution agent receiving transfer jobs from the backend and executing them via USSD codes.
+
+**Technology**: Kotlin + Jetpack Compose + MVVM Architecture  
+**Min SDK**: API 23 (Android 6.0)  
+**Target SDK**: API 34 (Android 14)
+
+---
+
+## ✅ Current Implementation Status
+
+### Completed Features
+
+#### ✅ Runtime Permissions System (November 16, 2025)
+- Comprehensive permission management
+- Material Design 3 UI
+- Handles all permission scenarios (grant, deny, permanent deny)
+- Settings navigation for manually enabling permissions
+- Lifecycle-aware permission checking
+
+**Documentation**: [`docs/RUNTIME_PERMISSIONS_COMPLETION.md`](docs/RUNTIME_PERMISSIONS_COMPLETION.md)
+
+### In Progress
+
+Currently ready to implement:
+- [ ] Configuration Screen (Server URL, SIM mapping, USSD password)
+- [ ] Authentication System (Phone + OTP)
+- [ ] USSD Execution Engine
+
+### Project Structure
+
+```
+app/
+├── src/main/java/com/onevertix/easytransferagent/
+│   ├── MainActivity.kt                    # ✅ Main entry with permissions
+│   ├── ui/
+│   │   ├── permissions/                   # ✅ Runtime permissions
+│   │   │   ├── PermissionsScreen.kt
+│   │   │   └── PermissionsViewModel.kt
+│   │   ├── theme/                         # ✅ Material Design 3
+│   │   │   ├── Color.kt
+│   │   │   ├── Theme.kt
+│   │   │   └── Type.kt
+│   │   └── base/
+│   │       ├── BaseActivity.kt
+│   │       └── BaseViewModel.kt
+│   ├── data/
+│   │   ├── api/
+│   │   │   ├── ApiService.kt
+│   │   │   └── RetrofitClient.kt
+│   │   ├── models/
+│   │   │   ├── AuthModels.kt
+│   │   │   ├── ResultModels.kt
+│   │   │   └── TransferJob.kt
+│   │   └── storage/
+│   │       ├── LocalPreferences.kt
+│   │       └── SecureStorage.kt
+│   ├── services/
+│   │   └── TransferExecutorService.kt
+│   ├── ussd/
+│   │   └── UssdExecutor.kt
+│   └── utils/
+│       ├── Constants.kt
+│       ├── Logger.kt
+│       └── PermissionUtils.kt            # ✅ Enhanced permission utils
+```
 
 ## Setup
 
