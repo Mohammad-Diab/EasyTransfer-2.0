@@ -73,6 +73,19 @@ class LocalPreferences(context: Context) {
         prefs.edit().putBoolean(KEY_SERVICE_ENABLED, enabled).apply()
     }
 
+    // Operator rules (JSON string)
+    fun saveOperatorRules(rulesJson: String) {
+        prefs.edit().putString(KEY_OPERATOR_RULES, rulesJson).apply()
+    }
+
+    fun getOperatorRules(): String? {
+        return prefs.getString(KEY_OPERATOR_RULES, null)
+    }
+
+    fun clearOperatorRules() {
+        prefs.edit().remove(KEY_OPERATOR_RULES).apply()
+    }
+
     // Clear all local preferences
     fun clearAll() {
         prefs.edit().clear().apply()
@@ -85,6 +98,7 @@ class LocalPreferences(context: Context) {
         private const val KEY_SIM2_OPERATOR = "sim2_operator"
         private const val KEY_FIRST_LAUNCH = "first_launch"
         private const val KEY_SERVICE_ENABLED = "service_enabled"
+        private const val KEY_OPERATOR_RULES = "operator_rules"
     }
 }
 

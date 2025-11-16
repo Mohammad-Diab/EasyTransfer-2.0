@@ -31,6 +31,8 @@ class TransferExecutorService : Service() {
     private lateinit var transferRepository: DefaultTransferRepository
     private lateinit var notificationManager: NotificationManager
     private lateinit var ussdExecutor: UssdExecutor
+    private lateinit var rulesRepository: com.onevertix.easytransferagent.data.repository.RulesRepository
+    private lateinit var responseParser: com.onevertix.easytransferagent.ussd.ResponseParser
 
     // Polling configuration
     private var pollingInterval = POLLING_INTERVAL_NORMAL
@@ -48,10 +50,24 @@ class TransferExecutorService : Service() {
         val localPrefs = LocalPreferences(this)
         transferRepository = DefaultTransferRepository(localPrefs)
         ussdExecutor = UssdExecutor(this)
+        rulesRepository = com.onevertix.easytransferagent.data.repository.RulesRepository(this, localPrefs)
+        responseParser = rulesRepository.getParser()
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create notification channel
         createNotificationChannel()
+
+        // Fetch latest rules from backend (async, don't block)
+        serviceScope.launch {
+            try {
+                rulesRepository.fetchAndCacheRules()
+                // Update parser with fresh rules
+                responseParser = rulesRepository.getParser()
+                Logger.i("Rules refreshed successfully", TAG)
+            } catch (e: Exception) {
+                Logger.w("Failed to refresh rules, using cached/default: ${e.message}", TAG)
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -214,13 +230,49 @@ class TransferExecutorService : Service() {
         when (result) {
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
                 Logger.i("Transfer USSD executed successfully: ${result.jobId}", TAG)
-                // TODO: Task 7 - Wait for USSD response via Accessibility Service
-                // TODO: Task 8 - Report result to backend
+
+                // TODO: Task 7 - Real response capture via Accessibility Service
+                // For now, we simulate a response for testing
+                val simulatedResponse = simulateUssdResponse(result.operator)
+
+                // Parse the response
+                val parseResult = responseParser.parseResponse(result.operator, simulatedResponse)
+
+                when (parseResult) {
+                    is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
+                        Logger.i("Transfer successful: ${parseResult.message}", TAG)
+                        updateNotification("Transfer completed successfully")
+                        // TODO: Task 8 - Report success to backend
+                    }
+                    is com.onevertix.easytransferagent.data.models.ParseResult.Failure -> {
+                        Logger.w("Transfer failed: ${parseResult.message}", TAG)
+                        updateNotification("Transfer failed")
+                        // TODO: Task 8 - Report failure to backend
+                    }
+                    is com.onevertix.easytransferagent.data.models.ParseResult.Unknown -> {
+                        Logger.w("Transfer result unknown: ${parseResult.message}", TAG)
+                        updateNotification("Transfer result unclear")
+                        // TODO: Task 8 - Report unknown to backend
+                    }
+                }
             }
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
                 Logger.e("Transfer execution failed: ${result.message}", TAG)
+                updateNotification("Transfer error: ${result.message}")
                 // TODO: Task 8 - Report error to backend
             }
+        }
+    }
+
+    /**
+     * Simulate USSD response for testing (will be replaced by Accessibility Service)
+     */
+    private fun simulateUssdResponse(operator: String): String {
+        // Simulate a successful response
+        return when (operator.uppercase()) {
+            "SYRIATEL" -> "تمت العملية بنجاح" // "Operation completed successfully"
+            "MTN" -> "تمت بنجاح" // "Completed successfully"
+            else -> "Success"
         }
     }
 

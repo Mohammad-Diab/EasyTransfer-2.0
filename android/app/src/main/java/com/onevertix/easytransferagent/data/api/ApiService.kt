@@ -53,5 +53,19 @@ interface ApiService {
 
     @GET("/api/android/status")
     suspend fun healthCheck(): Response<Unit>
+
+    // ========== Operator Rules ==========
+
+    @GET("/api/android/rules")
+    suspend fun getOperatorRules(
+        @Header("Authorization") token: String,
+        @Header("X-Device-ID") deviceId: String
+    ): Response<OperatorRulesResponse>
+
+    @GET("/api/android/rules/version")
+    suspend fun getRulesVersion(
+        @Header("Authorization") token: String,
+        @Header("X-Device-ID") deviceId: String
+    ): Response<Map<String, Int>>  // {"version": 123}
 }
 
