@@ -14,6 +14,7 @@ import com.onevertix.easytransferagent.MainActivity
 import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.repository.DefaultTransferRepository
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
+import com.onevertix.easytransferagent.ussd.UssdExecutor
 import com.onevertix.easytransferagent.utils.Logger
 import kotlinx.coroutines.*
 import kotlin.math.min
@@ -29,10 +30,15 @@ class TransferExecutorService : Service() {
 
     private lateinit var transferRepository: DefaultTransferRepository
     private lateinit var notificationManager: NotificationManager
+    private lateinit var ussdExecutor: UssdExecutor
 
     // Polling configuration
     private var pollingInterval = POLLING_INTERVAL_NORMAL
     private var consecutiveErrors = 0
+
+    // Job execution queue
+    private val jobQueue = mutableListOf<com.onevertix.easytransferagent.data.models.TransferJob>()
+    private var isExecutingJob = false
 
     override fun onCreate() {
         super.onCreate()
@@ -41,6 +47,7 @@ class TransferExecutorService : Service() {
         // Initialize dependencies
         val localPrefs = LocalPreferences(this)
         transferRepository = DefaultTransferRepository(localPrefs)
+        ussdExecutor = UssdExecutor(this)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Create notification channel
@@ -134,11 +141,13 @@ class TransferExecutorService : Service() {
                 // Adjust polling interval (faster when jobs present)
                 pollingInterval = POLLING_INTERVAL_ACTIVE
 
-                // TODO: Task 6 - Execute jobs via USSD
-                // For now, just log them
-                jobs.forEach { job ->
-                    Logger.d("Job: ${job.jobType} - ${job.requestId ?: job.jobId}", TAG)
+                // Add jobs to queue
+                synchronized(jobQueue) {
+                    jobQueue.addAll(jobs)
                 }
+
+                // Execute jobs
+                executeNextJob()
             } else {
                 // No jobs - slower polling
                 pollingInterval = POLLING_INTERVAL_NORMAL
@@ -148,6 +157,93 @@ class TransferExecutorService : Service() {
             val error = result.exceptionOrNull()
             Logger.e("Failed to fetch jobs: ${error?.message}", TAG, error)
             handlePollingError()
+        }
+    }
+
+    /**
+     * Execute next job in queue
+     */
+    private fun executeNextJob() {
+        if (isExecutingJob) {
+            Logger.d("Job execution already in progress", TAG)
+            return
+        }
+
+        val job = synchronized(jobQueue) {
+            if (jobQueue.isEmpty()) null else jobQueue.removeAt(0)
+        } ?: return
+
+        isExecutingJob = true
+
+        serviceScope.launch {
+            try {
+                Logger.i("Executing job: ${job.jobType} - ${job.requestId ?: job.jobId}", TAG)
+
+                when (job.jobType) {
+                    "transfer" -> executeTransferJob(job)
+                    "balance" -> executeBalanceJob(job)
+                    else -> {
+                        Logger.w("Unknown job type: ${job.jobType}", TAG)
+                    }
+                }
+
+                // Wait before next job (give time for USSD to complete)
+                delay(JOB_EXECUTION_DELAY)
+
+            } catch (e: Exception) {
+                Logger.e("Error executing job: ${e.message}", e, TAG)
+            } finally {
+                isExecutingJob = false
+
+                // Execute next job if queue not empty
+                if (jobQueue.isNotEmpty()) {
+                    executeNextJob()
+                }
+            }
+        }
+    }
+
+    /**
+     * Execute transfer job
+     */
+    private suspend fun executeTransferJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
+        updateNotification("Executing transfer to ${job.recipientPhone?.takeLast(4)?.let { "***$it" } ?: "unknown"}")
+
+        val result = ussdExecutor.executeTransfer(job)
+
+        when (result) {
+            is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
+                Logger.i("Transfer USSD executed successfully: ${result.jobId}", TAG)
+                // TODO: Task 7 - Wait for USSD response via Accessibility Service
+                // TODO: Task 8 - Report result to backend
+            }
+            is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
+                Logger.e("Transfer execution failed: ${result.message}", TAG)
+                // TODO: Task 8 - Report error to backend
+            }
+        }
+    }
+
+    /**
+     * Execute balance inquiry job
+     */
+    private suspend fun executeBalanceJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
+        val operator = job.operator ?: return
+
+        updateNotification("Checking balance for $operator")
+
+        val result = ussdExecutor.executeBalanceInquiry(operator)
+
+        when (result) {
+            is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
+                Logger.i("Balance inquiry executed successfully for $operator", TAG)
+                // TODO: Task 7 - Wait for USSD response via Accessibility Service
+                // TODO: Task 8 - Report result to backend
+            }
+            is com.onevertix.easytransferagent.ussd.ExecutionResult.Error -> {
+                Logger.e("Balance inquiry failed: ${result.message}", TAG)
+                // TODO: Task 8 - Report error to backend
+            }
         }
     }
 
@@ -230,6 +326,9 @@ class TransferExecutorService : Service() {
         private const val POLLING_INTERVAL_NORMAL = 5000L      // 5 seconds (idle)
         private const val POLLING_INTERVAL_ERROR = 5000L       // 5 seconds (first error)
         private const val POLLING_INTERVAL_MAX_BACKOFF = 30000L // 30 seconds (max backoff)
+
+        // Job execution delay (wait for USSD to complete)
+        private const val JOB_EXECUTION_DELAY = 10000L         // 10 seconds between jobs
 
         /**
          * Start the transfer service
