@@ -83,7 +83,63 @@ if (!response.allowed) {
 // Proceed with action
 ```
 
-### 2. Transfer Commands
+### 2. Welcome Message `/start`
+
+**Display user account info from Telegram and bot usage instructions:**
+- Extract user info from Telegram context: `ctx.from`
+- Display formatted message with name, username, telegram_id
+- Include instructions for `/send` (interactive & shortcut modes)
+- Include instructions for `/balance` command
+- No Backend API call needed
+
+**Example Implementation:**
+```javascript
+bot.command('start', async (ctx) => {
+  const user = ctx.from;
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
+  const username = user.username ? `@${user.username}` : '-';
+  
+  await ctx.reply(`
+مرحباً بك في EasyTransfer 2.0! 👋
+
+معلومات حسابك:
+الاسم: ${name}
+اسم المستخدم: ${username}
+معرف تيليجرام: ${user.id}
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+📱 الطريقة التفاعلية: /send
+⚡ الطريقة السريعة: /send <المبلغ> <رقم الهاتف>
+
+للاستعلام عن الرصيد: /balance
+  `);
+});
+```
+
+### 3. Balance Inquiry `/balance`
+
+**Allow users to check operator balance via USSD:**
+
+**Step 1: Operator Selection**
+- Display inline keyboard with Syriatel and MTN buttons
+- User must select operator (no text input)
+
+**Step 2: Submit Job**
+- Send to Backend: `POST /api/bot/balance { telegram_user_id, operator }`
+- Display waiting message: "⏳ يتم الآن الاستعلام عن الرصيد… يرجى الانتظار."
+
+**Step 3: Receive Result** (via `/internal/notify-balance`)
+- Success: Display full USSD response text
+- Failure: Display error message
+- Timeout (60s): Display timeout message
+
+**Key Points:**
+- No database storage (in-memory jobs only)
+- No cooldown rules
+- No parsing (send raw USSD text)
+- 60-second timeout handled by Backend
+
+### 4. Transfer Commands
 
 **Interactive Mode:**
 - `/send` → Ask for phone → Ask for amount → Submit to backend
@@ -93,7 +149,7 @@ if (!response.allowed) {
 - `/send <amount> <phone>` → Parse → Validate format only → Submit to backend
 - Invalid format: "يرجى استخدام الصيغة: /send <amount> <phone>"
 
-### 3. Validation Boundaries
+### 5. Validation Boundaries
 
 **Bot validates (minimal):**
 - Phone contains digits only
@@ -107,7 +163,7 @@ if (!response.allowed) {
 - Rate limiting
 - All business rules
 
-### 4. Notification System
+### 6. Notification System
 
 Bot exposes protected endpoints for backend callbacks:
 
@@ -118,6 +174,13 @@ Bot exposes protected endpoints for backend callbacks:
 // Displays: ✅ success or ❌ failure message
 ```
 
+**Balance Results:**
+```javascript
+// POST /internal/notify-balance
+// Requires: X-Bot-Secret header
+// Displays: 💰 full USSD response text or ❌ error
+```
+
 **OTP Delivery:**
 ```javascript
 // POST /internal/send-otp
@@ -125,7 +188,7 @@ Bot exposes protected endpoints for backend callbacks:
 // Sends code to user (NEVER stores it)
 ```
 
-### 5. Security Requirements
+### 7. Security Requirements
 
 **Internal Endpoints Protection:**
 ```javascript
@@ -431,13 +494,21 @@ try {
 ### Telegram Bot
 Before deploying:
 - [ ] Authorization check on all commands
+- [ ] `/start` command displays user info from Telegram context (name, username, id)
+- [ ] `/start` shows usage instructions for `/send` and `/balance`
+- [ ] `/start` handles optional fields (last_name, username) correctly
 - [ ] Interactive mode `/send` flow
 - [ ] Shortcut mode `/send <amount> <phone>`
+- [ ] `/balance` operator selection (Syriatel/MTN buttons)
+- [ ] `/balance` waiting message display
+- [ ] `/balance` success result with full USSD text
+- [ ] `/balance` timeout message (60 seconds)
 - [ ] Invalid format handling
 - [ ] Backend unreachable scenario
 - [ ] Internal endpoint security (token + optional IP)
 - [ ] OTP delivery (verify no storage)
 - [ ] Success/failure notifications
+- [ ] Balance result notifications
 - [ ] Log review for sensitive data
 - [ ] Webhook vs polling mode switching
 
@@ -462,6 +533,9 @@ Before deploying:
 - [ ] SIM to operator mapping configuration
 - [ ] USSD password storage (encrypted)
 - [ ] Request receiving (WebSocket/FCM/Polling)
+- [ ] Job type detection (transfer vs balance)
+- [ ] Balance USSD execution (Syriatel/MTN codes)
+- [ ] Balance result reporting (raw USSD text)
 - [ ] USSD execution on correct SIM
 - [ ] Carrier response parsing
 - [ ] Result reporting to backend

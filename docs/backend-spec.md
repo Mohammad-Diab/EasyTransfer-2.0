@@ -852,10 +852,62 @@ Content-Type: application/json
 }
 ```
 
+#### Create Balance Inquiry Job
+
+```
+POST /bot/balance
+Authorization: Bearer ${BOT_BACKEND_TOKEN}
+Content-Type: application/json
+
+{
+  "telegram_user_id": "123456789",
+  "operator": "syriatel" | "mtn"
+}
+```
+
+**Backend Process:**
+1. Authenticate bot token
+2. Map `telegram_user_id` to user
+3. Verify user is active
+4. Create in-memory balance job (NOT in database)
+5. Store job with 60-second expiration
+6. Map telegram_user_id to job for Android polling
+
+**In-Memory Job Structure:**
+```typescript
+{
+  jobId: "bal_xyz789",
+  userId: "user_123",
+  telegramUserId: "123456789",
+  operator: "syriatel",
+  status: "pending",
+  createdAt: Date.now(),
+  expiresAt: Date.now() + 60000  // 60 seconds
+}
+```
+
+**Response:**
+```json
+{
+  "job_id": "bal_xyz789",
+  "status": "pending",
+  "message": "Balance inquiry job created"
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "USER_INACTIVE",
+  "message": "Your account is inactive"
+}
+```
+
 #### Internal Callback (Backend → Bot)
 
 **Not a public API endpoint.** Backend calls bot's internal endpoint:
 
+**Transfer Result:**
 ```
 POST ${BOT_WEBHOOK_URL}/internal/notify-result
 X-Bot-Secret: ${INTERNAL_SECRET}
@@ -868,6 +920,29 @@ Content-Type: application/json
   "phone": "091234****",  // Masked
   "amount": 50,
   "message": "Transfer completed successfully"
+}
+```
+
+**Balance Result:**
+```
+POST ${BOT_WEBHOOK_URL}/internal/notify-balance
+X-Bot-Secret: ${INTERNAL_SECRET}
+Content-Type: application/json
+
+{
+  "telegram_user_id": "123456789",
+  "status": "success" | "failed",
+  "message": "<full USSD response text>"
+}
+```
+
+**Balance Timeout:**
+After 60 seconds with no Android response, backend automatically calls:
+```json
+{
+  "telegram_user_id": "123456789",
+  "status": "failed",
+  "message": "انتهاء المهلة (لم يتم استلام أي رد خلال 60 ثانية)."
 }
 ```
 
@@ -884,17 +959,66 @@ Authorization: Bearer ${ANDROID_JWT}
 1. Authenticate Android JWT
 2. Extract `user_id` and `device_id`
 3. Verify device is active
-4. Upgrade delayed requests: `delayed` → `pending` (where `execute_after <= NOW`)
-5. Get earliest `pending` request for this user
-6. Mark as `processing`
+4. **Check for pending balance job first** (in-memory)
+5. If balance job exists, return it immediately
+6. Otherwise, upgrade delayed requests: `delayed` → `pending` (where `execute_after <= NOW`)
+7. Get earliest `pending` transfer request for this user
+8. Mark transfer as `processing`
 
-**Response:**
+**Response (Balance Job):**
 ```json
 {
+  "job_type": "balance",
+  "job_id": "bal_xyz789",
+  "operator": "syriatel" | "mtn"
+}
+```
+
+**Response (Transfer Job):**
+```json
+{
+  "job_type": "transfer",
   "request_id": "req_abc123",
   "recipient_phone": "0919876543",
   "amount": 50,
   "operator_code": "SYRIATEL"
+}
+```
+
+**Response (No Jobs):**
+```json
+{
+  "message": "No pending requests"
+}
+```
+
+#### Report Balance Result
+
+```
+POST /android/balance/result
+Authorization: Bearer ${ANDROID_JWT}
+Content-Type: application/json
+
+{
+  "job_id": "bal_xyz789",  // Optional, can identify by user_id
+  "status": "success" | "failed",
+  "message": "<full USSD response text>"
+}
+```
+
+**Backend Process:**
+1. Authenticate Android JWT
+2. Extract `user_id`
+3. Find balance job for this user (in-memory)
+4. Delete job from memory
+5. Get user's telegram_user_id
+6. Call bot internal endpoint `/internal/notify-balance`
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Balance result reported successfully"
 }
 ```
 

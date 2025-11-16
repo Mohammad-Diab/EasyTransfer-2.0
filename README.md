@@ -24,8 +24,10 @@ The Telegram Bot and Web UI are **presentation layers**, while the Android App i
 ### Telegram Bot
 - 💬 Arabic language interface
 - 📱 Easy access via Telegram
-- 💸 Quick money transfer requests (`/send` command)
-- 🔐 OTP verification delivery
+- 👋 Welcome message with user account info (`/start` command)
+- 💸 Quick money transfer requests (`/send` command - interactive & shortcut modes)
+- 💰 Balance inquiry with operator selection (`/balance` command)
+- 🔐 OTP verification delivery with auto-delete
 - ✅ Real-time transfer status notifications
 
 ### Web UI
@@ -42,6 +44,7 @@ The Telegram Bot and Web UI are **presentation layers**, while the Android App i
 - 📞 Dual SIM support for multiple operators
 - 🔐 Secure storage for USSD passwords and tokens
 - ⚡ Real-time transfer instruction receiving (WebSocket/FCM)
+- 💰 Balance inquiry USSD execution
 - 🔄 Background execution with foreground service
 - 📤 Automatic result reporting to backend
 - 🛡️ Encrypted local storage for sensitive data
@@ -54,6 +57,7 @@ The Telegram Bot and Web UI are **presentation layers**, while the Android App i
 - 📡 Operator detection based on phone prefixes
 - 📱 One device per user enforcement
 - 🔄 Transfer status lifecycle management
+- 💰 In-memory balance job management (60-second timeout)
 - 💾 PostgreSQL database with relational schema
 
 ### Shared

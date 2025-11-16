@@ -664,6 +664,175 @@ User Request → Backend → Android App (execute USSD)
            Telegram Bot → User (notification)
 ```
 
+## 6.5. Balance Inquiry Execution
+
+### Purpose
+
+Execute USSD balance inquiry commands when requested by users via Telegram bot, separate from money transfers.
+
+### Job Type Detection
+
+When polling `GET /api/android/requests/next`, backend returns one of two job types:
+
+**Balance Job:**
+```json
+{
+  "job_type": "balance",
+  "job_id": "bal_xyz789",
+  "operator": "syriatel" | "mtn"
+}
+```
+
+**Transfer Job:**
+```json
+{
+  "job_type": "transfer",
+  "request_id": "req_abc123",
+  "recipient_phone": "0919876543",
+  "amount": 50,
+  "operator_code": "SYRIATEL"
+}
+```
+
+### Balance USSD Codes
+
+**Syriatel:**
+```
+*141#
+```
+
+**MTN:**
+```
+*141#
+```
+
+*(Adjust codes based on actual operator balance inquiry codes)*
+
+### Execution Flow
+
+1. **Receive Balance Job**
+   ```kotlin
+   fun onBalanceJobReceived(job: BalanceJob) {
+       val simSlot = getSIMSlotForOperator(job.operator)
+       if (simSlot == -1) {
+           reportBalanceError("No SIM found for operator ${job.operator}")
+           return
+       }
+       
+       executeBalanceUSSD(job.operator, simSlot)
+   }
+   ```
+
+2. **Execute USSD Code**
+   ```kotlin
+   fun executeBalanceUSSD(operator: String, simSlot: Int) {
+       val ussdCode = when (operator.lowercase()) {
+           "syriatel" -> "*141#"
+           "mtn" -> "*141#"
+           else -> {
+               reportBalanceError("Unknown operator: $operator")
+               return
+           }
+       }
+       
+       try {
+           val response = executeUSSD(ussdCode, simSlot)
+           reportBalanceResult("success", response)
+       } catch (e: Exception) {
+           reportBalanceError(e.message ?: "USSD execution failed")
+       }
+   }
+   ```
+
+3. **Report Full USSD Response (No Parsing)**
+   ```kotlin
+   fun reportBalanceResult(status: String, message: String) {
+       // Send raw USSD response text to backend
+       val result = BalanceResult(
+           status = status,
+           message = message  // Full text as-is
+       )
+       
+       sendBalanceResultToBackend(result)
+   }
+   ```
+
+### Balance Result Reporting
+
+**Endpoint:**
+```
+POST /api/android/balance/result
+Headers:
+  Authorization: Bearer <access_token>
+  X-Device-ID: <device_id>
+```
+
+**Request Body:**
+```json
+{
+  "status": "success",  // or "failed"
+  "message": "رصيدك الحالي هو 5000 ل.س\nالرصيد الإضافي: 1000 ل.س"  // Full USSD text
+}
+```
+
+### Key Differences from Transfers
+
+**Balance Jobs:**
+- ❌ No database storage
+- ❌ No cooldown rules
+- ❌ No amount/phone validation
+- ❌ No result parsing (send raw text)
+- ✅ In-memory job only
+- ✅ 60-second timeout
+- ✅ User selects operator every time
+- ✅ Immediate execution
+
+**Transfer Jobs:**
+- ✅ Stored in database
+- ✅ 5-minute and 20-second cooldown rules
+- ✅ Amount and phone validation
+- ✅ Success/failure parsing
+- ✅ Persistent status tracking
+
+### Implementation Notes
+
+```kotlin
+data class BalanceJob(
+    val jobType: String = "balance",
+    val jobId: String,
+    val operator: String  // "syriatel" or "mtn"
+)
+
+data class BalanceResult(
+    val status: String,  // "success" or "failed"
+    val message: String  // Raw USSD response text
+)
+
+fun handleNextJob(job: JobResponse) {
+    when (job.jobType) {
+        "balance" -> executeBalanceUSSD(job.operator, getSIMSlotForOperator(job.operator))
+        "transfer" -> executeTransfer(job.requestId, job.phone, job.amount, job.operator)
+        else -> Log.w(TAG, "Unknown job type: ${job.jobType}")
+    }
+}
+```
+
+### Backend Processing
+
+After receiving balance result:
+1. Backend deletes in-memory job
+2. Backend calls Telegram bot internal endpoint
+3. Bot displays raw USSD text to user
+4. No database logging
+
+### Security
+
+- ✅ Same authentication as transfers (JWT token)
+- ✅ Same encrypted storage for SIM mappings
+- ❌ No need to store USSD password (balance codes don't require it)
+- ✅ Device ID validation
+- ✅ Logs sanitized (no sensitive data)
+
 ## 7. Security Requirements
 
 ### Data Protection

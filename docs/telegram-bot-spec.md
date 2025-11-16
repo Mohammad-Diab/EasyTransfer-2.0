@@ -164,7 +164,152 @@ The bot serves exclusively as a **presentation layer**. All business logic resid
    ```
    No further actions are executed.
 
-## 4. Transfer Command `/send`
+## 4. Welcome Message `/start`
+
+### Purpose
+Display welcome message with user information from Telegram and bot usage instructions when user starts the bot.
+
+### Flow
+1. User sends: `/start`
+2. Bot extracts user info from Telegram context (`ctx.from`)
+3. Bot displays welcome message:
+
+```
+مرحباً بك في EasyTransfer 2.0! 👋
+
+معلومات حسابك:
+الاسم: <first_name> <last_name>
+اسم المستخدم: @<username>
+معرف تيليجرام: <telegram_id>
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+
+📱 الطريقة التفاعلية:
+/send
+ثم أدخل رقم الهاتف والمبلغ خطوة بخطوة
+
+⚡ الطريقة السريعة:
+/send <المبلغ> <رقم الهاتف>
+
+مثال:
+/send 1000 0912345678
+
+للاستعلام عن الرصيد: /balance
+
+للمساعدة: /help
+```
+
+### Implementation
+```javascript
+bot.command('start', async (ctx) => {
+  const user = ctx.from;
+  const name = [user.first_name, user.last_name].filter(Boolean).join(' ');
+  const username = user.username ? `@${user.username}` : '-';
+  
+  await ctx.reply(`
+مرحباً بك في EasyTransfer 2.0! 👋
+
+معلومات حسابك:
+الاسم: ${name}
+اسم المستخدم: ${username}
+معرف تيليجرام: ${user.id}
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+
+📱 الطريقة التفاعلية:
+/send
+ثم أدخل رقم الهاتف والمبلغ خطوة بخطوة
+
+⚡ الطريقة السريعة:
+/send <المبلغ> <رقم الهاتف>
+
+مثال:
+/send 1000 0912345678
+
+للاستعلام عن الرصيد: /balance
+
+للمساعدة: /help
+  `);
+});
+```
+
+### User Data from Telegram Context
+- `ctx.from.id` - Telegram user ID
+- `ctx.from.first_name` - First name
+- `ctx.from.last_name` - Last name (optional)
+- `ctx.from.username` - Username (optional)
+- No Backend API call needed
+
+## 5. Balance Inquiry `/balance`
+
+### Purpose
+Allow users to check their mobile operator balance via USSD execution through the Android app.
+
+### Flow
+
+**Step 1: Operator Selection**
+1. User sends: `/balance`
+2. Bot displays inline keyboard:
+   ```
+   يرجى اختيار المشغّل للاستعلام عن الرصيد:
+   
+   [Syriatel] [MTN]
+   ```
+
+**Step 2: Job Submission**
+1. User presses operator button
+2. Bot sends to Backend:
+   ```
+   POST /api/bot/balance
+   Authorization: Bearer <BOT_SERVICE_TOKEN>
+   {
+     "telegram_user_id": "123456789",
+     "operator": "syriatel" | "mtn"
+   }
+   ```
+3. Bot displays: "⏳ يتم الآن الاستعلام عن الرصيد… يرجى الانتظار."
+
+**Step 3: Result Notification** (Backend → Bot callback)
+Backend calls bot internal endpoint after Android execution:
+```
+POST /internal/notify-balance
+X-Bot-Secret: <secret>
+{
+  "telegram_user_id": "123456789",
+  "status": "success" | "failed",
+  "message": "<full USSD response text>"
+}
+```
+
+Bot displays result to user:
+
+**Success:**
+```
+💰 النتيجة:
+<النص الكامل لرسالة الـ USSD>
+```
+
+**Failure:**
+```
+❌ تعذّر الاستعلام عن الرصيد.
+السبب:
+<النص الكامل لرسالة الـ USSD>
+```
+
+**Timeout (60 seconds):**
+```
+❌ تعذّر الاستعلام عن الرصيد.
+السبب: انتهاء المهلة (لم يتم استلام أي رد خلال 60 ثانية).
+```
+
+### Key Design Points
+- **No database storage**: Balance jobs stored in memory only
+- **No cooldown rules**: Users can check balance anytime
+- **No parsing**: Send raw USSD response text
+- **Operator selection required**: User must always choose operator
+- **60-second timeout**: Job expires if Android doesn't respond
+
+## 6. Transfer Command `/send`
 
 ### A) Interactive Mode
 
@@ -203,7 +348,7 @@ The bot serves exclusively as a **presentation layer**. All business logic resid
 
 **Note:** All business logic (tiers, matching, limits, validation) handled by Backend only.
 
-## 5. Transfer Result Notifications
+## 7. Transfer Result Notifications
 
 ### Backend → Bot Communication
 
@@ -233,7 +378,7 @@ The bot serves exclusively as a **presentation layer**. All business logic resid
 
 **Important:** Bot does NOT determine success/failure - it only displays Backend results.
 
-## 6. OTP / Verification Codes
+## 8. OTP / Verification Codes
 
 ### Responsibility Separation
 - **Backend/Auth Service**: Generate and validate OTPs
@@ -259,7 +404,7 @@ The bot serves exclusively as a **presentation layer**. All business logic resid
 - Bot does NOT validate OTP codes
 - OTP codes are never logged
 
-## 7. Input Validation (Minimal Client-Side)
+## 9. Input Validation (Minimal Client-Side)
 
 ### Bot-Level Validation (Basic Only)
 
@@ -285,7 +430,7 @@ All comprehensive validation occurs in the Backend:
 - Rate limiting
 - Business rules
 
-## 8. Error Handling
+## 10. Error Handling
 
 ### Backend Unreachable
 ```
@@ -301,13 +446,14 @@ Bot NEVER confirms a request unless Backend actually receives and acknowledges i
 - Backend 4xx → Display Backend error message
 - Invalid response → Log and show generic error
 
-## 9. Internal Security
+## 11. Internal Security
 
-### Protected Endpoints
+**Protected Endpoints:**
 
 Bot exposes internal endpoints for:
 - Transfer result notifications
 - OTP delivery
+- Balance result notifications (NEW)
 
 **Security Requirements:**
 1. **Secret Token Header**: All internal requests must include authentication header
@@ -329,7 +475,7 @@ INTERNAL_SECRET=<random_secret_key>
 ALLOWED_IPS=10.0.0.5,10.0.0.6  # Optional
 ```
 
-## 10. Logging (Minimal, Safe)
+## 12. Logging (Minimal, Safe)
 
 ### What to Log
 
@@ -358,39 +504,63 @@ ALLOWED_IPS=10.0.0.5,10.0.0.6  # Optional
 [2025-11-14 10:35:12] INFO: OTP sent successfully
 ```
 
-## 11. Implementation Checklist
+## 13. Implementation Checklist
 
 ### Phase 1: Core Setup
-- [ ] Initialize Node.js project with Telegraf
+- [ ] Initialize Node.js project with grammY
 - [ ] Configure environment variables
 - [ ] Set up webhook/polling based on environment
-- [ ] Implement basic command handler for `/send`
+- [ ] Implement basic command handler for `/start`
 
-### Phase 2: Backend Integration
+### Phase 2: Welcome Message
+- [ ] Implement `/start` command
+- [ ] Fetch user info from Backend
+- [ ] Display formatted welcome message with account details
+- [ ] Add usage instructions for /send and /balance
+
+### Phase 3: Balance Inquiry
+- [ ] Implement `/balance` command
+- [ ] Create inline keyboard for operator selection (Syriatel/MTN)
+- [ ] Submit balance job to Backend API
+- [ ] Display waiting message
+- [ ] Create `/internal/notify-balance` endpoint
+- [ ] Display USSD result (success/failure/timeout)
+
+### Phase 4: Transfer Commands
+- [ ] Implement `/send` interactive mode
+- [ ] Implement `/send` shortcut mode
+- [ ] Basic format validation
+- [ ] Backend API submission
+- [ ] Error handling
+
+### Phase 5: Backend Integration
 - [ ] Create Backend API client
 - [ ] Implement authorization check
 - [ ] Implement transfer request submission
 - [ ] Add error handling for API calls
 
-### Phase 3: Notification System
+### Phase 6: Notification System
 - [ ] Create protected endpoint for transfer results
+- [ ] Create protected endpoint for balance results
 - [ ] Implement secret token validation
 - [ ] Add IP allowlist (optional)
 - [ ] Format and send success/failure messages
 
-### Phase 4: OTP Integration
+### Phase 7: OTP Integration
 - [ ] Create protected endpoint for OTP delivery
 - [ ] Implement secure code delivery
 - [ ] Ensure no code storage or logging
 
-### Phase 5: Testing & Security
+### Phase 8: Testing & Security
+- [ ] Test /start command with user info
+- [ ] Test /balance operator selection and result display
 - [ ] Test interactive mode
 - [ ] Test shortcut mode
 - [ ] Verify all security measures
 - [ ] Test error scenarios
 - [ ] Review logs for sensitive data leaks
 
-## 12. API Endpoints Reference
+## 14. API Endpoints Reference
 
 ### Backend API (Bot calls these)
 
@@ -414,6 +584,16 @@ POST /api/bot/transfers
 Response: { "request_id": "req_abc123", "status": "pending" }
 ```
 
+**Submit Balance Inquiry:**
+```
+POST /api/bot/balance
+{
+  "telegram_user_id": "123456789",
+  "operator": "syriatel" | "mtn"
+}
+Response: { "job_id": "bal_xyz789", "status": "pending" }
+```
+
 ### Bot Internal Endpoints (Backend calls these)
 
 **Transfer Result Notification:**
@@ -430,6 +610,17 @@ Headers: X-Bot-Secret: <secret>
 }
 ```
 
+**Balance Result Notification:**
+```
+POST /internal/notify-balance
+Headers: X-Bot-Secret: <secret>
+{
+  "telegram_user_id": "123456789",
+  "status": "success|failed",
+  "message": "<full USSD response text>"
+}
+```
+
 **OTP Delivery:**
 ```
 POST /internal/send-otp
@@ -440,7 +631,7 @@ Headers: X-Bot-Secret: <secret>
 }
 ```
 
-## 13. Deployment Notes
+## 15. Deployment Notes
 
 ### Production (Webhook)
 - Configure webhook URL with Telegram

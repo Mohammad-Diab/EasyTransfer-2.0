@@ -2,17 +2,21 @@
 
 **Project**: EasyTransfer 2.0 Telegram Bot  
 **Framework**: grammY (TypeScript)  
-**Status**: 100% Complete (10/10 tasks) ✅  
-**Last Updated**: November 15, 2025
+**Status**: 83% Complete (10/12 tasks) ✅  
+**Last Updated**: November 16, 2025
 
 **Production Ready:**
-- ✅ All commands implemented (/start, /send, /health)
+- ✅ All core commands implemented (/start, /send, /health)
 - ✅ Interactive and shortcut transfer modes working
 - ✅ Internal endpoints for OTP delivery and notifications
 - ✅ Webhook and polling modes supported
 - ✅ Centralized logging with sensitive data sanitization
 - ✅ Comprehensive error handling
 - ✅ Full deployment documentation (DEPLOYMENT.md)
+
+**New Features Required:**
+- [ ] /start enhancement with user account info display
+- [ ] /balance command with operator selection and USSD result display
 
 ---
 
@@ -881,15 +885,194 @@ Conduct comprehensive testing of all bot functionality and perform security audi
 
 ---
 
+## Task 11: /start Command Enhancement with User Info
+**Status**: [ ] Not Started  
+**Priority**: Medium (User Experience)  
+**Estimated Effort**: Small
+
+### Description
+Enhance the /start command to display user account information from Telegram context, along with comprehensive bot usage instructions. Replace the current basic welcome message with a formatted message showing user's name, username, and Telegram ID (from ctx.from), followed by instructions for using /send and /balance commands with examples.
+
+### Deliverables
+- [ ] Update /start command handler in commands/start.ts
+- [ ] Extract user info from Telegram context (ctx.from)
+- [ ] Format welcome message with user details (name, username, id)
+- [ ] Add usage instructions for /send command (interactive & shortcut)
+- [ ] Add usage instructions for /balance command
+- [ ] Handle optional fields (last_name, username)
+
+### Acceptance Criteria
+- /start fetches user info from Backend API
+- Welcome message displays user's name, phone, and telegram_id
+- Usage instructions show both /send modes with example
+- Balance inquiry instructions included
+- Error handling shows fallback message if user not found
+- Message formatted clearly in Arabic with proper structure
+
+### Implementation Notes
+```typescript
+// backendClient.ts
+async getUserInfo(telegramUserId: number) {
+  return this.request('/api/bot/user-info', { telegram_user_id: telegramUserId });
+}
+
+// commands/start.ts
+bot.command('start', async (ctx) => {
+  try {
+    const userInfo = await backendClient.getUserInfo(ctx.from.id);
+    ctx.reply(`
+مرحباً بك في EasyTransfer 2.0! 👋
+
+معلومات حسابك:
+الاسم: ${userInfo.name}
+رقم الهاتف: ${userInfo.phone_number}
+معرف تيليجرام: ${userInfo.telegram_user_id}
+
+لإرسال تحويل، استخدم أحد الطريقتين:
+
+📱 الطريقة التفاعلية:
+/send
+ثم أدخل رقم الهاتف والمبلغ خطوة بخطوة
+
+⚡ الطريقة السريعة:
+/send <المبلغ> <رقم الهاتف>
+
+مثال:
+/send 1000 0912345678
+
+للاستعلام عن الرصيد: /balance
+
+للمساعدة: /help
+    `);
+  } catch (error) {
+    // Fallback message
+    ctx.reply('مرحباً بك في EasyTransfer 2.0! 👋\\n\\nاستخدم /send للتحويل و /balance للاستعلام عن الرصيد.');
+  }
+});
+```
+
+### Notes
+- User info endpoint: GET /api/bot/user-info?telegram_user_id=123456789
+- Response: `{ name, phone_number, telegram_user_id }`
+- No authorization bypass - /start should work for all users to show welcome
+
+---
+
+## Task 12: /balance Command with Operator Selection
+**Status**: [ ] Not Started  
+**Priority**: High (New Feature)  
+**Estimated Effort**: Medium
+
+### Description
+Implement the /balance command allowing users to check their mobile operator balance via USSD execution through the Android app. User selects operator (Syriatel/MTN) via inline keyboard, bot submits balance job to Backend, displays waiting message, and shows USSD result when received via internal callback endpoint. No database storage, no parsing - just raw USSD text display.
+
+### Deliverables
+- [ ] Create /balance command handler in commands/balance.ts
+- [ ] Display inline keyboard with operator buttons (Syriatel, MTN)
+- [ ] Handle callback query for operator selection
+- [ ] Add submitBalanceJob() method to backendClient.ts
+- [ ] Submit balance job to Backend (POST /api/bot/balance)
+- [ ] Display waiting message: "⏳ يتم الآن الاستعلام عن الرصيد… يرجى الانتظار."
+- [ ] Create internal endpoint POST /internal/notify-balance
+- [ ] Display success result with full USSD text
+- [ ] Display failure/timeout message
+- [ ] Handle errors gracefully
+
+### Acceptance Criteria
+- /balance shows inline keyboard with Syriatel and MTN buttons
+- Pressing button submits job to Backend
+- Waiting message displayed immediately after submission
+- Success result shows full USSD response text
+- Failure shows error message from Backend
+- Timeout (60s) shows timeout message
+- Internal endpoint requires X-Bot-Secret header
+- No balance data stored in bot
+
+### Implementation Notes
+```typescript
+// commands/balance.ts
+import { InlineKeyboard } from 'grammy';
+
+bot.command('balance', async (ctx) => {
+  const keyboard = new InlineKeyboard()
+    .text('Syriatel', 'balance_syriatel')
+    .text('MTN', 'balance_mtn');
+  
+  await ctx.reply('يرجى اختيار المشغّل للاستعلام عن الرصيد:', {
+    reply_markup: keyboard
+  });
+});
+
+bot.callbackQuery(/^balance_/, async (ctx) => {
+  const operator = ctx.callbackQuery.data.replace('balance_', '');
+  
+  try {
+    await backendClient.submitBalanceJob(ctx.from.id, operator);
+    await ctx.answerCallbackQuery();
+    await ctx.reply('⏳ يتم الآن الاستعلام عن الرصيد… يرجى الانتظار.');
+  } catch (error) {
+    await ctx.answerCallbackQuery();
+    await ctx.reply('حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.');
+  }
+});
+
+// backendClient.ts
+async submitBalanceJob(telegramUserId: number, operator: string) {
+  return this.request('/api/bot/balance', {
+    telegram_user_id: telegramUserId,
+    operator: operator
+  });
+}
+
+// server/internal.ts
+internalRouter.post('/notify-balance', async (req, res) => {
+  // Verify X-Bot-Secret header
+  if (req.headers['x-bot-secret'] !== process.env.INTERNAL_SECRET) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const { telegram_user_id, status, message } = req.body;
+
+  try {
+    if (status === 'success') {
+      await bot.api.sendMessage(telegram_user_id, `💰 النتيجة:\\n${message}`);
+    } else {
+      await bot.api.sendMessage(telegram_user_id, `❌ تعذّر الاستعلام عن الرصيد.\\nالسبب:\\n${message}`);
+    }
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Failed to send balance result:', error);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+});
+```
+
+### Backend Integration
+- POST /api/bot/balance → Create in-memory balance job
+- Balance job expires after 60 seconds
+- Android polls and receives job_type: "balance"
+- Android executes USSD and reports raw text
+- Backend calls POST /internal/notify-balance with result
+- Bot displays full USSD text to user
+
+### Notes
+- No database storage for balance jobs (in-memory only)
+- No cooldown rules (user can check balance anytime)
+- No parsing of USSD response (send raw text)
+- Operator selection required every time
+- 60-second timeout handled by Backend
+
+---
+
 ## Overall Progress
 
-**Total Tasks**: 10  
-**Completed**: 0  
+**Total Tasks**: 12  
+**Completed**: 10  
 **In Progress**: 0  
-**Not Started**: 10  
+**Not Started**: 2  
 **Blocked**: 0  
 
-**Overall Completion**: 0%
+**Overall Completion**: 83%
 
 ---
 
