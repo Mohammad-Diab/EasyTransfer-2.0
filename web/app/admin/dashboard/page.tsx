@@ -23,6 +23,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   ReloadOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 import { useSystemStats, useAllUsers } from '@/hooks/useTransfers';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -30,6 +31,7 @@ import { api } from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { UserRole } from '@/lib/constants';
 import AddUserModal from '@/components/AddUserModal';
+import EditUserModal from '@/components/EditUserModal';
 
 const { Title } = Typography;
 const { Search } = Input;
@@ -39,6 +41,8 @@ function DashboardContent() {
   const [limit, setLimit] = useState(20);
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+  const [editUserModalOpen, setEditUserModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: number; name: string | null } | null>(null);
 
   const queryClient = useQueryClient();
   const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useSystemStats();
@@ -63,6 +67,11 @@ function DashboardContent() {
 
   const handleToggleStatus = (userId: number, currentStatus: boolean) => {
     toggleStatusMutation.mutate(userId);
+  };
+
+  const handleEditUser = (user: { id: number; name: string | null }) => {
+    setSelectedUser(user);
+    setEditUserModalOpen(true);
   };
 
   const columns = [
@@ -143,15 +152,23 @@ function DashboardContent() {
     {
       title: 'إجراءات',
       key: 'actions',
-      width: 120,
+      width: 180,
       render: (_: any, record: any) => (
-        <Switch
-          checked={record.status === 'active'}
-          onChange={() => handleToggleStatus(record.id, record.status === 'active')}
-          loading={toggleStatusMutation.isPending}
-          checkedChildren="نشط"
-          unCheckedChildren="معطل"
-        />
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEditUser({ id: record.id, name: record.name })}
+            title="تعديل"
+          />
+          <Switch
+            checked={record.status === 'active'}
+            onChange={() => handleToggleStatus(record.id, record.status === 'active')}
+            loading={toggleStatusMutation.isPending}
+            checkedChildren="نشط"
+            unCheckedChildren="معطل"
+          />
+        </Space>
       ),
     },
   ];
@@ -310,6 +327,21 @@ function DashboardContent() {
       <AddUserModal
         open={addUserModalOpen}
         onClose={() => setAddUserModalOpen(false)}
+        onSuccess={() => {
+          refetchUsers();
+          queryClient.invalidateQueries({ queryKey: ['users'] });
+        }}
+      />
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        open={editUserModalOpen}
+        userId={selectedUser?.id || null}
+        currentName={selectedUser?.name || null}
+        onClose={() => {
+          setEditUserModalOpen(false);
+          setSelectedUser(null);
+        }}
         onSuccess={() => {
           refetchUsers();
           queryClient.invalidateQueries({ queryKey: ['users'] });
