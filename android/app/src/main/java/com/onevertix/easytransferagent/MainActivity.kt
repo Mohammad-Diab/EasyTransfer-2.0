@@ -96,16 +96,23 @@ fun MainContent(
 
     var currentScreen by remember { mutableStateOf(AppScreen.PERMISSIONS) }
 
-    // Navigation rules
+    // Navigation rules - follow strict sequence
     LaunchedEffect(permissionsState) {
         if (permissionsState is PermissionsUiState.Granted) {
+            // After permissions granted, check server setup
             currentScreen = AppScreen.SERVER_SETUP
         }
     }
 
     LaunchedEffect(serverSetupState) {
-        if (serverSetupState is ServerSetupUiState.Success) {
-            currentScreen = AppScreen.CONFIGURATION
+        when (serverSetupState) {
+            is ServerSetupUiState.Success -> {
+                // Server configured, move to configuration
+                currentScreen = AppScreen.CONFIGURATION
+            }
+            else -> {
+                // Server not configured yet, stay on SERVER_SETUP
+            }
         }
     }
 
@@ -117,13 +124,24 @@ fun MainContent(
         }
     }
 
-    // Observe auth state to navigate
+    // Observe auth state to navigate - but only when we're already on auth screens
     val authState by authViewModel.uiState.collectAsState()
     LaunchedEffect(authState) {
+        // Only navigate based on auth state if we're on auth/dashboard screens
         when (authState) {
-            is AuthUiState.Authenticated -> currentScreen = AppScreen.DASHBOARD
-            is AuthUiState.PhoneEntry -> currentScreen = AppScreen.AUTH_LOGIN
-            is AuthUiState.OtpEntry -> currentScreen = AppScreen.AUTH_OTP
+            is AuthUiState.Authenticated -> {
+                if (currentScreen in listOf(AppScreen.AUTH_LOGIN, AppScreen.AUTH_OTP, AppScreen.DASHBOARD)) {
+                    currentScreen = AppScreen.DASHBOARD
+                }
+            }
+            is AuthUiState.OtpEntry -> {
+                if (currentScreen == AppScreen.AUTH_LOGIN) {
+                    currentScreen = AppScreen.AUTH_OTP
+                }
+            }
+            is AuthUiState.PhoneEntry -> {
+                // Don't override other screens, only set to login if we're already in auth flow
+            }
         }
     }
 
