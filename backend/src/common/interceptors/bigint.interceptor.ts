@@ -19,6 +19,11 @@ export class BigIntInterceptor implements NestInterceptor {
       return obj.toString();
     }
 
+    // Preserve Date objects as ISO strings
+    if (obj instanceof Date) {
+      return obj.toISOString();
+    }
+
     if (Array.isArray(obj)) {
       return obj.map(item => this.convertBigIntsToStrings(item));
     }
