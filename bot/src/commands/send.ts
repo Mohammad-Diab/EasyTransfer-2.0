@@ -12,7 +12,8 @@ function isValidAmount(amount: string): boolean {
 }
 
 function isValidPhone(phone: string): boolean {
-  return /^\d+$/.test(phone) && phone.length >= 9;
+  // Syrian phone numbers: 10 digits starting with 09
+  return /^09\d{8}$/.test(phone);
 }
 
 // Interactive conversation flow
@@ -84,7 +85,7 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
       if (response.id && response.status) {
         await ctx.reply(MESSAGES.REQUEST_RECEIVED);
       } else {
-        await ctx.reply(MESSAGES.BACKEND_ERROR);
+        await ctx.reply(response.message || MESSAGES.BACKEND_ERROR);
       }
     } else if (confirmCtx.callbackQuery?.data === 'cancel_transfer') {
       await confirmCtx.answerCallbackQuery();
@@ -96,9 +97,10 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
     } else {
       await ctx.reply(MESSAGES.TRANSFER_CANCELLED);
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Send conversation error', error, { user_id: userId });
-    await ctx.reply(MESSAGES.BACKEND_ERROR);
+    const errorMessage = error?.message || MESSAGES.BACKEND_ERROR;
+    await ctx.reply(errorMessage);
   }
 }
 
@@ -153,9 +155,10 @@ export async function sendCommand(ctx: CommandContext<MyContext>) {
       } else {
         await ctx.reply(MESSAGES.BACKEND_ERROR);
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Send command error', error, { user_id: userId });
-      await ctx.reply(MESSAGES.BACKEND_ERROR);
+      const errorMessage = error?.message || MESSAGES.BACKEND_ERROR;
+      await ctx.reply(errorMessage);
     }
   } else if (args.length === 0) {
     // Interactive mode: enter conversation

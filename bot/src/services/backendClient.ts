@@ -37,8 +37,9 @@ class BackendClient {
       if (!response.ok) {
         const error = await response.json().catch(() => ({ 
           message: response.statusText 
-        })) as { message?: string };
-        throw new Error(error.message || `Backend request failed: ${response.statusText}`);
+        })) as { message?: string; error?: string };
+        const errorMessage = error.message || error.error || `Backend request failed: ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
       return response.json() as Promise<T>;
