@@ -65,7 +65,11 @@ function TransfersContent() {
       dataIndex: 'status',
       key: 'status',
       width: 140,
-      render: (status: string) => <StatusTag status={status} />,
+      render: (status: string, record: any) => (
+        <span title={status === 'failed' && record.carrier_response ? record.carrier_response : undefined}>
+          <StatusTag status={status} />
+        </span>
+      ),
     },
     {
       title: 'التاريخ',
