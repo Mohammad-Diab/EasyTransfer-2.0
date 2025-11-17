@@ -352,19 +352,17 @@ class TransferExecutorService : Service() {
         simSlot: Int
     ) {
         try {
-            val report = com.onevertix.easytransferagent.data.models.TransferResultReport(
+            // Create TransferResult matching backend API structure
+            val transferResult = com.onevertix.easytransferagent.data.models.TransferResult(
                 requestId = requestId,
-                jobId = jobId,
                 status = status,
-                message = message,
+                message = message, // This becomes carrier_response in SubmitResultDto
                 executedAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
                     timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }.format(java.util.Date()),
-                operator = operator,
-                simSlot = simSlot
+                }.format(java.util.Date())
             )
 
-            val result = transferRepository.reportTransferResultNew(report)
+            val result = transferRepository.reportTransferResult(transferResult)
 
             if (result.isSuccess) {
                 Logger.i("Transfer result reported successfully: $requestId", TAG)
@@ -504,18 +502,13 @@ class TransferExecutorService : Service() {
         simSlot: Int
     ) {
         try {
-            val report = com.onevertix.easytransferagent.data.models.BalanceResultReport(
-                operator = operator,
+            // Create BalanceResult matching backend API structure
+            val balanceResult = com.onevertix.easytransferagent.data.models.BalanceResult(
                 status = status,
-                balance = balance,
-                message = message,
-                executedAt = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US).apply {
-                    timeZone = java.util.TimeZone.getTimeZone("UTC")
-                }.format(java.util.Date()),
-                simSlot = simSlot
+                message = message
             )
 
-            val result = transferRepository.reportBalanceResultNew(report)
+            val result = transferRepository.reportBalanceResult(balanceResult)
 
             if (result.isSuccess) {
                 Logger.i("Balance result reported successfully: $operator", TAG)

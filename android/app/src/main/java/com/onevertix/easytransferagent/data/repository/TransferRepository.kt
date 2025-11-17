@@ -3,12 +3,9 @@ package com.onevertix.easytransferagent.data.repository
 import com.onevertix.easytransferagent.data.api.ApiService
 import com.onevertix.easytransferagent.data.api.RetrofitClient
 import com.onevertix.easytransferagent.data.models.BalanceResult
-import com.onevertix.easytransferagent.data.models.BalanceResultReport
-import com.onevertix.easytransferagent.data.models.JobResponse
 import com.onevertix.easytransferagent.data.models.SubmitResultDto
 import com.onevertix.easytransferagent.data.models.TransferJob
 import com.onevertix.easytransferagent.data.models.TransferResult
-import com.onevertix.easytransferagent.data.models.TransferResultReport
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 
 /**
@@ -18,8 +15,6 @@ interface TransferRepository {
     suspend fun getPendingJobs(): Result<List<TransferJob>>
     suspend fun reportTransferResult(result: TransferResult): Result<Unit>
     suspend fun reportBalanceResult(result: BalanceResult): Result<Unit>
-    suspend fun reportTransferResultNew(report: TransferResultReport): Result<Unit>
-    suspend fun reportBalanceResultNew(report: BalanceResultReport): Result<Unit>
     suspend fun checkHealth(): Result<Unit>
 }
 
@@ -127,40 +122,6 @@ class DefaultTransferRepository(
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Failed to report balance result: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun reportTransferResultNew(report: TransferResultReport): Result<Unit> {
-        return try {
-            val response = api().reportTransferResultNew(
-                token = "",
-                deviceId = "",
-                report = report
-            )
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Failed to report transfer: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun reportBalanceResultNew(report: BalanceResultReport): Result<Unit> {
-        return try {
-            val response = api().reportBalanceResultNew(
-                token = "",
-                deviceId = "",
-                report = report
-            )
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception("Failed to report balance: ${response.code()}"))
             }
         } catch (e: Exception) {
             Result.failure(e)

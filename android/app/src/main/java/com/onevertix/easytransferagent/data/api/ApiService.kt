@@ -37,6 +37,10 @@ interface ApiService {
 
     // ========== Transfer Results ==========
 
+    /**
+     * POST /api/android/requests/:id/result
+     * Submit USSD execution result
+     */
     @POST("/api/android/requests/{id}/result")
     suspend fun reportTransferResult(
         @Path("id") requestId: Int,
@@ -45,6 +49,10 @@ interface ApiService {
         @Body result: SubmitResultDto
     ): Response<SubmitResultResponse>
 
+    /**
+     * POST /api/android/balance/result
+     * Submit balance inquiry result
+     */
     @POST("/api/android/balance/result")
     suspend fun reportBalanceResult(
         @Header("Authorization") token: String,
@@ -52,19 +60,6 @@ interface ApiService {
         @Body result: BalanceResult
     ): Response<Unit>
 
-    @POST("/api/android/results/transfer")
-    suspend fun reportTransferResultNew(
-        @Header("Authorization") token: String,
-        @Header("X-Device-ID") deviceId: String,
-        @Body report: TransferResultReport
-    ): Response<ResultReportResponse>
-
-    @POST("/api/android/results/balance")
-    suspend fun reportBalanceResultNew(
-        @Header("Authorization") token: String,
-        @Header("X-Device-ID") deviceId: String,
-        @Body report: BalanceResultReport
-    ): Response<ResultReportResponse>
 
     // ========== Health Check ==========
 
