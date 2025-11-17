@@ -368,8 +368,8 @@ Authentication:
 - POST /api/auth/android/logout
 
 Transfers:
-- GET /api/android/jobs/pending
-- POST /api/android/transfers/result
+- GET /api/android/requests/next
+- POST /api/android/requests/:id/result
 - POST /api/android/balance/result
 
 Health:
@@ -485,7 +485,7 @@ Implement short polling mechanism (3-5 seconds interval) to fetch pending transf
 - [x] TransferExecutorService (Foreground Service)
 - [x] Polling logic with coroutines (3-5s interval)
 - [x] Adaptive polling interval (fast when active, slow when idle)
-- [x] Job polling endpoint integration (GET /android/jobs/pending)
+- [x] Job polling endpoint integration (GET /android/requests/next)
 - [x] Job queue management for multiple pending transfers
 - [x] Persistent notification for foreground service
 - [x] Service start/stop control from UI

@@ -24,6 +24,7 @@ class DashboardViewModel(
 
     init {
         loadDashboard()
+        checkServerConnection()
     }
 
     private fun loadDashboard() {
@@ -35,6 +36,14 @@ class DashboardViewModel(
 
             // Load initial stats
             loadStats()
+        }
+    }
+
+    private fun checkServerConnection() {
+        viewModelScope.launch {
+            val result = authRepo.healthCheck()
+            val isConnected = result.getOrDefault(false)
+            _stats.value = _stats.value.copy(connected = isConnected)
         }
     }
 

@@ -29,7 +29,7 @@ interface ApiService {
 
     // ========== Transfer Execution Endpoints ==========
 
-    @GET("/api/android/jobs/pending")
+    @GET("/api/android/requests/next")
     suspend fun getPendingJobs(
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String
@@ -37,8 +37,9 @@ interface ApiService {
 
     // ========== Transfer Results ==========
 
-    @POST("/api/android/transfers/result")
+    @POST("/api/android/requests/{id}/result")
     suspend fun reportTransferResult(
+        @Path("id") requestId: String,
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String,
         @Body result: TransferResult

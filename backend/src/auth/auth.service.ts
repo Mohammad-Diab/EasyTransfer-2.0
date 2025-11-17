@@ -256,4 +256,26 @@ export class AuthService {
 
     return true;
   }
+
+  /**
+   * Logout Android device by revoking its access
+   */
+  async logoutAndroid(deviceId: string): Promise<void> {
+    const device = await this.prisma.device.findUnique({
+      where: { device_id: deviceId },
+    });
+
+    if (!device) {
+      throw new BadRequestException('Device not found');
+    }
+
+    // Revoke device access
+    await this.prisma.device.update({
+      where: { device_id: deviceId },
+      data: {
+        status: 'revoked',
+        last_active: new Date(),
+      },
+    });
+  }
 }

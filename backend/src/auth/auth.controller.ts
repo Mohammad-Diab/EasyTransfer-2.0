@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Res } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Res, Headers } from '@nestjs/common';
 import { Response } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
@@ -79,6 +80,21 @@ export class AuthController {
     return {
       success: true,
       ...result,
+    };
+  }
+
+  /**
+   * POST /api/auth/android/logout
+   * Logout Android device and revoke access
+   */
+  @Post('android/logout')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard('jwt'))
+  async logoutAndroid(@Headers('x-device-id') deviceId: string) {
+    await this.authService.logoutAndroid(deviceId);
+    return {
+      success: true,
+      message: 'تم تسجيل الخروج بنجاح',
     };
   }
 }

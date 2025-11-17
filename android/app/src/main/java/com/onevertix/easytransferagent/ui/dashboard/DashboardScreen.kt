@@ -36,11 +36,11 @@ fun DashboardScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.dashboard_title)) },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.logout))
-                    }
-                }
+//                actions = {
+//                    IconButton(onClick = onLogout) {
+//                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.logout))
+//                    }
+//                }
             )
         }
     ) { padding ->
@@ -127,7 +127,7 @@ private fun ConnectionStatusCard(
                         MaterialTheme.colorScheme.error
                 )
                 Text(
-                    text = if (stats.connected) "Connected" else "Disconnected",
+                    text = if (stats.connected) stringResource(R.string.connected) else stringResource(R.string.disconnected),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -239,7 +239,7 @@ private fun StatsOverviewCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.icon_info),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(

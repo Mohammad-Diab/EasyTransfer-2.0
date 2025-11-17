@@ -50,6 +50,7 @@ class DefaultTransferRepository(
     override suspend fun reportTransferResult(result: TransferResult): Result<Unit> {
         return try {
             val response = api().reportTransferResult(
+                requestId = result.requestId,
                 token = "", // Will be added by AuthInterceptor
                 deviceId = "", // Will be added by AuthInterceptor
                 result = result

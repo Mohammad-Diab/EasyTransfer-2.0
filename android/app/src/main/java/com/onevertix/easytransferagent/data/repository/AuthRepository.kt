@@ -15,6 +15,7 @@ interface AuthRepository {
     suspend fun requestOtp(rawPhone: String): Result<OtpRequestResponse>
     suspend fun verifyOtp(rawPhone: String, otp: String): Result<AuthResponse>
     suspend fun logout(): Result<Unit>
+    suspend fun healthCheck(): Result<Boolean>
     fun isLoggedIn(): Boolean
 }
 
@@ -100,6 +101,19 @@ class DefaultAuthRepository(
         secure.clearAccessToken()
         secure.saveTokenExpiry(0)
         return Result.success(Unit)
+    }
+
+    override suspend fun healthCheck(): Result<Boolean> {
+        return try {
+            val response = api().healthCheck()
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                Result.success(false)
+            }
+        } catch (e: Exception) {
+            Result.success(false)
+        }
     }
 
     override fun isLoggedIn(): Boolean = secure.isTokenValid()
