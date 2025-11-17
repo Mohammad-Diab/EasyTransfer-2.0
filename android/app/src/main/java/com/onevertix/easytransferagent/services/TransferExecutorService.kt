@@ -536,9 +536,9 @@ class TransferExecutorService : Service() {
      */
     private fun simulateBalanceResponse(operator: String): String {
         return when (operator.uppercase()) {
-            "SYRIATEL" -> "رصيدك الحالي 5000 ل.س"
-            "MTN" -> "Your balance: 3000 SYP"
-            else -> "Balance: 1000"
+            "SYRIATEL" -> "تمت العملية بنجاح. رصيدك الحالي 5000 ل.س"
+            "MTN" -> "تمت العملية بنجاح. Your balance: 3000 SYP"
+            else -> "تمت العملية بنجاح. Balance: 1000"
         }
     }
 
@@ -651,4 +651,3 @@ class TransferExecutorService : Service() {
         }
     }
 }
-

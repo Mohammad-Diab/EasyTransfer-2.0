@@ -77,11 +77,11 @@ class MockUssdService {
         // Simulate USSD processing time
         delay(getDelayMs())
 
-        val balance = Random.nextInt(1000, 10000)
+        val balance = Random.nextInt(100000, 50000000)
         val response = when (operator.lowercase()) {
-            "syriatel" -> "رصيدك الحالي: $balance ليرة سورية"
-            "mtn" -> "الرصيد المتوفر: $balance ليرة"
-            else -> "Your balance is: $balance SYP"
+            "syriatel" -> "تمت العملية بنجاح. رصيدك الحالي: $balance ليرة سورية"
+            "mtn" -> "تمت العملية بنجاح. الرصيد المتوفر: $balance ليرة"
+            else -> "تمت العملية بنجاح. Your balance is: $balance SYP"
         }
 
         Logger.i("🧪 MOCK USSD: Balance retrieved - $response", TAG)
@@ -128,4 +128,3 @@ data class MockUssdResult(
     val success: Boolean,
     val response: String
 )
-
