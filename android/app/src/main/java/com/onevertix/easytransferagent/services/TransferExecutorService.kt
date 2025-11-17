@@ -37,8 +37,7 @@ class TransferExecutorService : Service() {
     private var pollingInterval = POLLING_INTERVAL_NORMAL
     private var consecutiveErrors = 0
 
-    // Job execution queue
-    private val jobQueue = mutableListOf<com.onevertix.easytransferagent.data.models.TransferJob>()
+    // Job execution state - only one job at a time
     private var isExecutingJob = false
 
     override fun onCreate() {
@@ -139,30 +138,35 @@ class TransferExecutorService : Service() {
 
     /**
      * Poll backend for pending jobs
+     * Only polls if no job is currently executing
      */
     private suspend fun pollForJobs() {
+        // Skip polling if a job is currently executing
+        if (isExecutingJob) {
+            Logger.d("Job execution in progress, skipping poll", TAG)
+            return
+        }
+
         Logger.d("Polling for pending jobs...", TAG)
 
         val result = transferRepository.getPendingJobs()
 
         if (result.isSuccess) {
             val jobs = result.getOrNull() ?: emptyList()
-            Logger.i("Received ${jobs.size} pending jobs", TAG)
+            Logger.i("Received ${jobs.size} pending job(s)", TAG)
 
             if (jobs.isNotEmpty()) {
+                // Backend sends only one job at a time
+                val job = jobs.first()
+
                 // Update notification
-                updateNotification("Processing ${jobs.size} job(s)")
+                updateNotification("Processing job: ${job.jobType}")
 
                 // Adjust polling interval (faster when jobs present)
                 pollingInterval = POLLING_INTERVAL_ACTIVE
 
-                // Add jobs to queue
-                synchronized(jobQueue) {
-                    jobQueue.addAll(jobs)
-                }
-
-                // Execute jobs
-                executeNextJob()
+                // Execute the job immediately (blocks next poll until complete)
+                executeJob(job)
             } else {
                 // No jobs - slower polling
                 pollingInterval = POLLING_INTERVAL_NORMAL
@@ -176,45 +180,31 @@ class TransferExecutorService : Service() {
     }
 
     /**
-     * Execute next job in queue
+     * Execute a single job
+     * Blocks further polling until complete
      */
-    private fun executeNextJob() {
-        if (isExecutingJob) {
-            Logger.d("Job execution already in progress", TAG)
-            return
-        }
-
-        val job = synchronized(jobQueue) {
-            if (jobQueue.isEmpty()) null else jobQueue.removeAt(0)
-        } ?: return
-
+    private suspend fun executeJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
         isExecutingJob = true
 
-        serviceScope.launch {
-            try {
-                Logger.i("Executing job: ${job.jobType} - ${job.requestId ?: job.jobId}", TAG)
+        try {
+            Logger.i("Executing job: ${job.jobType} - ${job.requestId ?: job.jobId}", TAG)
 
-                when (job.jobType) {
-                    "transfer" -> executeTransferJob(job)
-                    "balance" -> executeBalanceJob(job)
-                    else -> {
-                        Logger.w("Unknown job type: ${job.jobType}", TAG)
-                    }
-                }
-
-                // Wait before next job (give time for USSD to complete)
-                delay(JOB_EXECUTION_DELAY)
-
-            } catch (e: Exception) {
-                Logger.e("Error executing job: ${e.message}", e, TAG)
-            } finally {
-                isExecutingJob = false
-
-                // Execute next job if queue not empty
-                if (jobQueue.isNotEmpty()) {
-                    executeNextJob()
+            when (job.jobType) {
+                "transfer" -> executeTransferJob(job)
+                "balance" -> executeBalanceJob(job)
+                else -> {
+                    Logger.w("Unknown job type: ${job.jobType}", TAG)
                 }
             }
+
+            // Wait after job completion before next poll (give time for USSD to complete)
+            delay(JOB_EXECUTION_DELAY)
+
+        } catch (e: Exception) {
+            Logger.e("Error executing job: ${e.message}", e, TAG)
+        } finally {
+            isExecutingJob = false
+            Logger.i("Job execution complete, ready for next poll", TAG)
         }
     }
 
