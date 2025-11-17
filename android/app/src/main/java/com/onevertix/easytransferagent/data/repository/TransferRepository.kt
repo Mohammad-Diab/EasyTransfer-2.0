@@ -5,6 +5,7 @@ import com.onevertix.easytransferagent.data.api.RetrofitClient
 import com.onevertix.easytransferagent.data.models.BalanceResult
 import com.onevertix.easytransferagent.data.models.BalanceResultReport
 import com.onevertix.easytransferagent.data.models.JobResponse
+import com.onevertix.easytransferagent.data.models.SubmitResultDto
 import com.onevertix.easytransferagent.data.models.TransferJob
 import com.onevertix.easytransferagent.data.models.TransferResult
 import com.onevertix.easytransferagent.data.models.TransferResultReport
@@ -89,11 +90,21 @@ class DefaultTransferRepository(
 
     override suspend fun reportTransferResult(result: TransferResult): Result<Unit> {
         return try {
+            // Convert to SubmitResultDto matching backend expectations
+            val submitDto = SubmitResultDto(
+                status = result.status,
+                carrierResponse = result.message
+            )
+
+            // Convert requestId to Int (backend expects numeric ID in path)
+            val requestIdInt = result.requestId.toIntOrNull()
+                ?: throw IllegalArgumentException("Invalid request ID: ${result.requestId}")
+
             val response = api().reportTransferResult(
-                requestId = result.requestId,
+                requestId = requestIdInt,
                 token = "", // Will be added by AuthInterceptor
                 deviceId = "", // Will be added by AuthInterceptor
-                result = result
+                result = submitDto
             )
             if (response.isSuccessful) {
                 Result.success(Unit)

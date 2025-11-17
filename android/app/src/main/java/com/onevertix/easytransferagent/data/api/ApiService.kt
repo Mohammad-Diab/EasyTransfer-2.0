@@ -39,11 +39,11 @@ interface ApiService {
 
     @POST("/api/android/requests/{id}/result")
     suspend fun reportTransferResult(
-        @Path("id") requestId: String,
+        @Path("id") requestId: Int,
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String,
-        @Body result: TransferResult
-    ): Response<Unit>
+        @Body result: SubmitResultDto
+    ): Response<SubmitResultResponse>
 
     @POST("/api/android/balance/result")
     suspend fun reportBalanceResult(

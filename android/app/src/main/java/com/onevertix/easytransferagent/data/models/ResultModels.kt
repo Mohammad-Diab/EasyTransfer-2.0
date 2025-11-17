@@ -4,7 +4,38 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /**
- * Request body for reporting transfer result
+ * Request body for submitting transfer result to backend
+ * Matches: POST /api/android/requests/:id/result
+ */
+@JsonClass(generateAdapter = true)
+data class SubmitResultDto(
+    @Json(name = "status")
+    val status: String,  // "success", "failed", "error", etc.
+
+    @Json(name = "carrier_response")
+    val carrierResponse: String  // Raw USSD response from carrier
+)
+
+/**
+ * Response from submit result endpoint
+ */
+@JsonClass(generateAdapter = true)
+data class SubmitResultResponse(
+    @Json(name = "success")
+    val success: Boolean,
+
+    @Json(name = "message")
+    val message: String,
+
+    @Json(name = "transfer_id")
+    val transferId: Int,
+
+    @Json(name = "status")
+    val status: String
+)
+
+/**
+ * Request body for reporting transfer result (legacy)
  */
 @JsonClass(generateAdapter = true)
 data class TransferResult(
@@ -44,4 +75,3 @@ data class ErrorResponse(
     @Json(name = "message")
     val message: String
 )
-
