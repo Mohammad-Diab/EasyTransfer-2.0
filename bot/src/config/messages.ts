@@ -16,7 +16,7 @@ export const MESSAGES = {
   // Interactive send mode
   ASK_PHONE: 'يرجى إدخال رقم الهاتف المستلم:',
   ASK_AMOUNT: 'يرجى إدخال المبلغ المراد تحويله:',
-  INVALID_PHONE: 'رقم الهاتف غير صالح. يرجى إدخال أرقام فقط.',
+  INVALID_PHONE: 'رقم الهاتف غير صالح. يرجى إدخال رقم يبدأ بـ 09 ومكون من 10 أرقام (مثال: 0912345678).',
   INVALID_AMOUNT: 'المبلغ غير صالح. يرجى إدخال رقم موجب.',
   INVALID_TIER: 'لا يمكن تحويل هذا المبلغ',
   CONFIRM_TRANSFER: (amount: number, phone: string) => 
