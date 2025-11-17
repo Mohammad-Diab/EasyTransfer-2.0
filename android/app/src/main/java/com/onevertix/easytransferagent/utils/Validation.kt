@@ -14,11 +14,14 @@ object Validation {
     }
 
     /**
-     * Normalize phone number to 09xxxxxxxx format
-     * Removes spaces and validates format
+     * Normalize phone number to 09xxxxxxxx format only.
+     * If input is not already 09xxxxxxxx, throw error so caller can show validation message.
      */
     fun normalizeToLocalSyrian(input: String): String {
         val clean = input.trim().replace(" ", "")
+        if (!syLocalRegex.matches(clean)) {
+            throw IllegalArgumentException("Phone must be in 09xxxxxxxx format")
+        }
         return clean
     }
 

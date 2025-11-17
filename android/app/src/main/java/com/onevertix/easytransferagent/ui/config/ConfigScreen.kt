@@ -73,7 +73,7 @@ fun ConfigScreen(
                 serverUrl = uiState.serverUrl,
                 error = uiState.serverUrlError,
                 onServerUrlChange = onServerUrlChange,
-                enabled = !uiState.isSaving
+                enabled = false
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -116,7 +116,7 @@ fun ConfigScreen(
                 } else {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.icon_check),
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
@@ -155,8 +155,8 @@ private fun ServerUrlSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = null,
+                    imageVector = Icons.Default.Api,
+                    contentDescription = stringResource(R.string.icon_api),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
@@ -166,12 +166,6 @@ private fun ServerUrlSection(
                 )
             }
 
-            Text(
-                text = stringResource(R.string.config_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
             OutlinedTextField(
                 value = serverUrl,
                 onValueChange = onServerUrlChange,
@@ -179,7 +173,7 @@ private fun ServerUrlSection(
                 label = { Text(stringResource(R.string.server_url_label)) },
                 placeholder = { Text(stringResource(R.string.server_url_hint)) },
                 leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
+                    Icon(Icons.Default.Lock, contentDescription = stringResource(R.string.icon_lock))
                 },
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
@@ -227,8 +221,8 @@ private fun SimMappingSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Phone,
-                    contentDescription = null,
+                    imageVector = Icons.Default.SimCard,
+                    contentDescription = stringResource(R.string.icon_sim_card),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
@@ -237,12 +231,6 @@ private fun SimMappingSection(
                     fontWeight = FontWeight.SemiBold
                 )
             }
-
-            Text(
-                text = stringResource(R.string.config_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             // SIM 1
             OperatorDropdown(
@@ -359,11 +347,6 @@ private fun UssdPasswordSection(
                 )
             }
 
-            Text(
-                text = stringResource(R.string.config_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
 
             if (hasExistingPassword) {
                 Text(
@@ -380,7 +363,7 @@ private fun UssdPasswordSection(
                 label = { Text(if (hasExistingPassword) stringResource(R.string.ussd_password) else stringResource(R.string.ussd_password)) },
                 placeholder = { Text(stringResource(R.string.ussd_password_hint)) },
                 leadingIcon = {
-                    Icon(Icons.Default.Lock, contentDescription = null)
+                    Icon(Icons.Default.Lock, contentDescription = stringResource(R.string.icon_lock))
                 },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {

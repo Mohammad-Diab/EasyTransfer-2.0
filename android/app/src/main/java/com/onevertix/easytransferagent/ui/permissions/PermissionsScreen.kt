@@ -42,7 +42,7 @@ fun PermissionsScreen(
         // Icon
         Icon(
             imageVector = Icons.Default.Lock,
-            contentDescription = "Permissions",
+            contentDescription = stringResource(R.string.icon_lock),
             modifier = Modifier.size(80.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -84,7 +84,7 @@ fun PermissionsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.icon_settings),
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -112,7 +112,7 @@ fun PermissionsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.icon_check),
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
@@ -149,7 +149,7 @@ private fun PermissionCard(
             // Permission icon
             Icon(
                 imageVector = getPermissionIcon(permission),
-                contentDescription = null,
+                contentDescription = stringResource(R.string.icon_info),
                 modifier = Modifier.size(40.dp),
                 tint = MaterialTheme.colorScheme.primary
             )

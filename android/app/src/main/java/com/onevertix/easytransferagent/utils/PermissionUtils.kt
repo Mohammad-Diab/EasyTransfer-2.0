@@ -205,10 +205,10 @@ object PermissionUtils {
      */
     fun getPermissionName(permission: String, context: Context? = null): String {
         return when (permission) {
-            Manifest.permission.CALL_PHONE -> context?.getString(R.string.permission_phone) ?: "الهاتف"
-            Manifest.permission.READ_PHONE_STATE -> context?.getString(R.string.permission_phone) ?: "حالة الهاتف"
-            Manifest.permission.READ_PHONE_NUMBERS -> context?.getString(R.string.permission_phone) ?: "أرقام الهاتف"
-            Manifest.permission.POST_NOTIFICATIONS -> context?.getString(R.string.permission_notifications) ?: "الإشعارات"
+            Manifest.permission.CALL_PHONE -> context?.getString(R.string.permission_phone) ?: "Phone"
+            Manifest.permission.READ_PHONE_STATE -> context?.getString(R.string.permission_phone) ?: "Phone state"
+            Manifest.permission.READ_PHONE_NUMBERS -> context?.getString(R.string.permission_phone) ?: "Phone numbers"
+            Manifest.permission.POST_NOTIFICATIONS -> context?.getString(R.string.permission_notifications) ?: "Notifications"
             else -> permission.substringAfterLast('.')
         }
     }
@@ -219,14 +219,14 @@ object PermissionUtils {
     fun getPermissionDescription(permission: String, context: Context? = null): String {
         return when (permission) {
             Manifest.permission.CALL_PHONE ->
-                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لتنفيذ أكواد USSD للتحويلات"
+                context?.getString(R.string.permission_phone_desc) ?: "Required to execute USSD codes for transfers"
             Manifest.permission.READ_PHONE_STATE ->
-                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لاكتشاف بطاقات SIM وإدارة الشريحتين"
+                context?.getString(R.string.permission_phone_desc) ?: "Required to detect SIM cards and manage dual SIM"
             Manifest.permission.READ_PHONE_NUMBERS ->
-                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لدعم الشريحتين واكتشاف المشغل"
+                context?.getString(R.string.permission_phone_desc) ?: "Required for dual SIM support and operator detection"
             Manifest.permission.POST_NOTIFICATIONS ->
-                context?.getString(R.string.permission_notifications_desc) ?: "مطلوب لعرض إشعارات حالة التحويل"
-            else -> "مطلوب لعمل التطبيق"
+                context?.getString(R.string.permission_notifications_desc) ?: "Required to show transfer status notifications"
+            else -> "Permission required for the app to function"
         }
     }
 

@@ -103,49 +103,34 @@ class ConfigViewModel : ViewModel() {
         val currentState = _uiState.value as? ConfigUiState.Editing ?: return
 
         // Validate inputs
-        val serverUrlError = validateServerUrl(currentState.serverUrl)
         val ussdPasswordError = validateUssdPassword(
             currentState.ussdPassword,
             currentState.hasExistingPassword
         )
-
         val simError = validateSimMapping(
             currentState.sim1Operator,
             currentState.sim2Operator
         )
-
         if (ussdPasswordError != null || simError != null) {
             _uiState.value = currentState.copy(
-                // serverUrlError = serverUrlError ?: simError,
                 ussdPasswordError = ussdPasswordError
             )
             return
         }
-
-        // Save configuration
         _uiState.value = currentState.copy(isSaving = true)
-
         viewModelScope.launch {
             try {
-                // Save server URL
                 localPreferences?.saveServerUrl(currentState.serverUrl)
-
-                // Save SIM mappings
                 if (currentState.sim1Operator.isNotBlank()) {
                     localPreferences?.saveSim1Operator(currentState.sim1Operator)
                 }
                 if (currentState.sim2Operator.isNotBlank()) {
                     localPreferences?.saveSim2Operator(currentState.sim2Operator)
                 }
-
-                // Save USSD password if provided
                 if (currentState.ussdPassword.isNotBlank()) {
                     secureStorage?.saveUssdPassword(currentState.ussdPassword)
                 }
-
-                // Mark first launch complete
                 localPreferences?.setFirstLaunchComplete()
-
                 _uiState.value = ConfigUiState.Success
             } catch (e: Exception) {
                 val msg = appContext?.getString(R.string.error_save_config_failed, e.localizedMessage ?: "")
@@ -215,6 +200,15 @@ class ConfigViewModel : ViewModel() {
      */
     fun hasExistingConfiguration(): Boolean {
         return localPreferences?.isSetupComplete() == true
+    }
+
+    /**
+     * Check if full configuration is complete
+     */
+    fun isFullConfigurationComplete(): Boolean {
+        val lp = localPreferences
+        val sec = secureStorage
+        return lp?.getSim1Operator() != null || lp?.getSim2Operator() != null && sec?.hasUssdPassword() == true
     }
 }
 

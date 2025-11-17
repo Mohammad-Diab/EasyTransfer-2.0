@@ -96,7 +96,7 @@ class DefaultAuthRepository(
     override suspend fun logout(): Result<Unit> {
         val token = secure.getAccessToken() ?: return Result.success(Unit)
         val deviceId = secure.getDeviceId().orEmpty()
-        val resp = api().logout("Bearer $token", deviceId)
+        api().logout("Bearer $token", deviceId)
         // Clear local auth even if server request failed
         secure.clearAccessToken()
         secure.saveTokenExpiry(0)

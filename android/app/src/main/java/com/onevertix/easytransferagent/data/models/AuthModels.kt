@@ -8,9 +8,6 @@ import com.squareup.moshi.JsonClass
  */
 @JsonClass(generateAdapter = true)
 data class OtpRequestResponse(
-    @Json(name = "success")
-    val success: Boolean = true,  // Default to true if not provided
-
     @Json(name = "message")
     val message: String
 )

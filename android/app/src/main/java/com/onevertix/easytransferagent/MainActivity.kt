@@ -107,14 +107,14 @@ fun MainContent(
     // Determine initial screen based on app state
     val localPrefs = remember { LocalPreferences(context) }
     val initialScreen = remember {
+        val secure = SecureStorage(context)
+        val hasPassword = secure.getUssdPassword() != null
+        val hasSimConfig = localPrefs.getSim1Operator() != null || localPrefs.getSim2Operator() != null
         when {
-            // If user is logged in and configured, go directly to dashboard
-            authRepo.isLoggedIn() && localPrefs.isSetupComplete() -> AppScreen.DASHBOARD
-            // If configured but not logged in, go to login
+            authRepo.isLoggedIn() && hasSimConfig && hasPassword -> AppScreen.DASHBOARD
+            authRepo.isLoggedIn() && (!hasSimConfig || !hasPassword) -> AppScreen.CONFIGURATION
             localPrefs.isSetupComplete() -> AppScreen.AUTH_LOGIN
-            // If server URL is set but not fully configured, go to configuration
-            localPrefs.getServerUrl() != null -> AppScreen.CONFIGURATION
-            // Otherwise start from permissions
+            localPrefs.getServerUrl() != null -> AppScreen.CONFIGURATION // fallback if server URL set but not setup complete
             else -> AppScreen.PERMISSIONS
         }
     }
@@ -151,26 +151,26 @@ fun MainContent(
     LaunchedEffect(authState) {
         when (authState) {
             is AuthUiState.Authenticated -> {
-                // After authentication, go to configuration
-                if (currentScreen in listOf(AppScreen.AUTH_LOGIN, AppScreen.AUTH_OTP)) {
-                    currentScreen = AppScreen.CONFIGURATION
-                }
+                val secure = SecureStorage(context)
+                val hasPassword = secure.getUssdPassword() != null
+                val hasSimConfig = localPrefs.getSim1Operator() != null || localPrefs.getSim2Operator() != null
+                currentScreen = if (hasPassword && hasSimConfig) AppScreen.DASHBOARD else AppScreen.CONFIGURATION
             }
             is AuthUiState.OtpEntry -> {
                 if (currentScreen == AppScreen.AUTH_LOGIN) {
                     currentScreen = AppScreen.AUTH_OTP
                 }
             }
-            is AuthUiState.PhoneEntry -> {
-                // Stay on login screen
-            }
+            is AuthUiState.PhoneEntry -> { /* stay */ }
         }
     }
 
     LaunchedEffect(configState) {
         if (configState is ConfigUiState.Success) {
-            // After config saved, go to dashboard
-            currentScreen = AppScreen.DASHBOARD
+            val secure = SecureStorage(context)
+            val hasPassword = secure.getUssdPassword() != null
+            val hasSimConfig = localPrefs.getSim1Operator() != null || localPrefs.getSim2Operator() != null
+            currentScreen = if (hasPassword && hasSimConfig) AppScreen.DASHBOARD else AppScreen.CONFIGURATION
         }
     }
 

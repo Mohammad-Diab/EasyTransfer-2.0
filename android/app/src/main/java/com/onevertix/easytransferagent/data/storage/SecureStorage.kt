@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.util.UUID
+import androidx.core.content.edit
 
 /**
  * Secure storage for sensitive data using EncryptedSharedPreferences
@@ -73,7 +74,7 @@ class SecureStorage(context: Context) {
 
     // USSD Password
     fun saveUssdPassword(password: String) {
-        encryptedPrefs.edit().putString(KEY_USSD_PASSWORD, password).apply()
+        encryptedPrefs.edit { putString(KEY_USSD_PASSWORD, password) }
     }
 
     fun getUssdPassword(): String? {
@@ -81,12 +82,16 @@ class SecureStorage(context: Context) {
     }
 
     fun clearUssdPassword() {
-        encryptedPrefs.edit().remove(KEY_USSD_PASSWORD).apply()
+        encryptedPrefs.edit { remove(KEY_USSD_PASSWORD) }
+    }
+
+    fun hasUssdPassword(): Boolean {
+        return !getUssdPassword().isNullOrBlank()
     }
 
     // User ID
     fun saveUserId(userId: String) {
-        encryptedPrefs.edit().putString(KEY_USER_ID, userId).apply()
+        encryptedPrefs.edit { putString(KEY_USER_ID, userId) }
     }
 
     fun getUserId(): String? {
@@ -95,7 +100,7 @@ class SecureStorage(context: Context) {
 
     // Clear all secure data (logout)
     fun clearAll() {
-        encryptedPrefs.edit().clear().apply()
+        encryptedPrefs.edit { clear() }
     }
 
     companion object {

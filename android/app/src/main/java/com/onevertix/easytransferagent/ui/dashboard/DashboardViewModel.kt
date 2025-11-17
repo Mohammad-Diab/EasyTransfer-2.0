@@ -34,8 +34,19 @@ class DashboardViewModel(
                 isLoggedIn = authRepo.isLoggedIn()
             )
 
-            // Load initial stats
-            loadStats()
+            // Load initial stats - preserve existing connected flag
+            val prev = _stats.value
+            _stats.value = prev.copy(
+                todayCount = prev.todayCount,
+                todaySuccess = prev.todaySuccess,
+                todayFailed = prev.todayFailed,
+                weekCount = prev.weekCount,
+                totalCount = prev.totalCount,
+                lastTransferTime = prev.lastTransferTime,
+                pendingJobsCount = prev.pendingJobsCount,
+                serviceRunning = false,
+                connected = prev.connected
+            )
         }
     }
 
@@ -47,20 +58,8 @@ class DashboardViewModel(
         }
     }
 
-    private fun loadStats() {
-        // TODO: Load real stats from local storage or backend
-        // For now, using placeholder data
-        _stats.value = TransferStats(
-            todayCount = 0,
-            todaySuccess = 0,
-            todayFailed = 0,
-            weekCount = 0,
-            totalCount = 0,
-            lastTransferTime = null,
-            pendingJobsCount = 0,
-            serviceRunning = false,
-            connected = false
-        )
+    fun refreshConnection() {
+        checkServerConnection()
     }
 
     fun startService() {

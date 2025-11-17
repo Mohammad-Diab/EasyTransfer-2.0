@@ -57,7 +57,7 @@ fun OtpScreen(
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.verifying))
                 } else {
-                    Icon(Icons.Default.Check, contentDescription = null)
+                    Icon(Icons.Default.Check, contentDescription = stringResource(R.string.icon_check))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.verify_otp))
                 }

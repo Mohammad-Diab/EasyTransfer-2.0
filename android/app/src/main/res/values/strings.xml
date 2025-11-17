@@ -123,7 +123,7 @@
     <string name="transfer_unclear">نتيجة التحويل غير واضحة</string>
     <string name="transfer_error">خطأ في التحويل: %1$s</string>
     <string name="checking_balance">جاري التحقق من الرصيد لـ %1$s</string>
-    <string name="processing_jobs">جاري معالجة %1$d وظيفة</string>
+    <string name="processing_jobs">جاري معالجة %1$d مهمة</string>
     <string name="waiting_jobs">في انتظار الوظائف</string>
 
     <!-- Notification -->
@@ -137,7 +137,7 @@
     <string name="error_network">خطأ في الشبكة</string>
     <string name="error_permission_denied">تم رفض الإذن: مطلوب إذن %1$s</string>
     <string name="error_no_sim">لم يتم العثور على بطاقة SIM للمشغل %1$s</string>
-    <string name="error_invalid_job">بيانات الوظيفة غير صالحة</string>
+    <string name="error_invalid_job">بيانات المهمة غير صالحة</string>
     <string name="error_password_not_configured">لم يتم تكوين كلمة مرور USSD</string>
 
     <!-- Common -->
@@ -157,7 +157,9 @@
     <!-- Icon Content Descriptions for Accessibility -->
     <string name="icon_lock">قفل</string>
     <string name="icon_settings">الإعدادات</string>
+    <string name="icon_api">API</string>
     <string name="icon_check">علامة صح</string>
+    <string name="icon_sim_card">بطاقة Sim</string>
     <string name="icon_phone">هاتف</string>
     <string name="icon_notifications">إشعارات</string>
     <string name="icon_info">معلومات</string>

@@ -79,13 +79,13 @@ fun DashboardScreen(
             ) {
                 Icon(
                     imageVector = if (state.isLoggedIn) Icons.Default.CheckCircle else Icons.Default.Warning,
-                    contentDescription = null,
+                    contentDescription = if (state.isLoggedIn) stringResource(R.string.icon_check_circle) else stringResource(R.string.icon_warning),
                     tint = if (state.isLoggedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (state.isLoggedIn) "Authenticated" else "Not Authenticated",
+                    text = if (state.isLoggedIn) stringResource(R.string.authenticated) else stringResource(R.string.not_authenticated),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -120,7 +120,7 @@ private fun ConnectionStatusCard(
             ) {
                 Icon(
                     imageVector = if (stats.connected) Icons.Default.CheckCircle else Icons.Default.Warning,
-                    contentDescription = null,
+                    contentDescription = if (stats.connected) stringResource(R.string.icon_check_circle) else stringResource(R.string.icon_warning),
                     tint = if (stats.connected)
                         MaterialTheme.colorScheme.primary
                     else
@@ -136,7 +136,7 @@ private fun ConnectionStatusCard(
             if (stats.lastTransferTime != null) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "Last Transfer",
+                        text = stringResource(R.string.last_transfer),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -176,7 +176,7 @@ private fun ServiceStatusCard(
             ) {
                 Icon(
                     imageVector = if (isRunning) Icons.Default.PlayArrow else Icons.Default.Settings,
-                    contentDescription = null,
+                    contentDescription = if (isRunning) stringResource(R.string.icon_play) else stringResource(R.string.icon_settings),
                     tint = if (isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
@@ -200,7 +200,7 @@ private fun ServiceStatusCard(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = null)
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.icon_close))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.stop_service))
                 }
@@ -209,7 +209,7 @@ private fun ServiceStatusCard(
                     onClick = onStartService,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.icon_play))
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.start_service))
                 }

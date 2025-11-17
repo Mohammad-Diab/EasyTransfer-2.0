@@ -48,7 +48,7 @@ fun LoginScreen(
                     onPhoneChange(formatted)
                 },
                 label = { Text(stringResource(R.string.phone_label)) },
-                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Default.Phone, contentDescription = stringResource(R.string.icon_phone)) },
                 isError = state.phoneError != null,
                 supportingText = state.phoneError?.let { { Text(it) } },
                 singleLine = true,

@@ -43,7 +43,7 @@ fun ServerSetupScreen(
             // Icon
             Icon(
                 imageVector = Icons.Default.Info,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.icon_info),
                 modifier = Modifier.size(64.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
@@ -94,7 +94,7 @@ fun ServerSetupScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.testing_connection))
                 } else {
-                    Icon(Icons.Default.Check, contentDescription = null)
+                    Icon(Icons.Default.Check, contentDescription = stringResource(R.string.icon_check))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.test_connection))
                 }

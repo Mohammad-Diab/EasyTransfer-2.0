@@ -58,7 +58,7 @@ class AuthViewModel(
         val st = (_uiState.value as? AuthUiState.PhoneEntry) ?: return
         val phone = st.phone
         if (!Validation.isValidSyrianPhone(phone)) {
-            _uiState.value = st.copy(phoneError = "الرجاء إدخال رقم بصيغة 09XXXXXXXX")
+            _uiState.value = st.copy(phoneError = context.getString(R.string.error_invalid_phone_format))
             return
         }
         _uiState.value = st.copy(isLoading = true, phoneError = null)
@@ -69,15 +69,15 @@ class AuthViewModel(
                     _uiState.value = AuthUiState.OtpEntry(phone = phone, resendSecondsLeft = 60)
                     startResendTimer(60)
                 } else {
-                    _uiState.value = st.copy(isLoading = false, phoneError = "تعذر إرسال الرمز، حاول لاحقًا")
+                    _uiState.value = st.copy(isLoading = false, phoneError = context.getString(R.string.error_send_otp))
                 }
             } catch (e: Exception) {
                 _uiState.value = st.copy(
                     isLoading = false,
                     phoneError = when {
-                        e.message?.contains("Server URL not configured") == true -> "Server URL not configured"
-                        e.message?.contains("Unable to resolve host") == true -> "Cannot connect to server"
-                        else -> "Error: ${e.message}"
+                        e.message?.contains("Server URL not configured") == true -> context.getString(R.string.error_server_not_configured)
+                        e.message?.contains("Unable to resolve host") == true -> context.getString(R.string.error_cannot_connect_server)
+                        else -> context.getString(R.string.error_generic, e.message ?: "")
                     }
                 )
             }
