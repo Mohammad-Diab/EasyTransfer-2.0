@@ -62,5 +62,5 @@ export const MESSAGES = {
   // Balance inquiry messages
   BALANCE_SUCCESS: (message: string) => `💰 ${message}`,
   BALANCE_FAILED: (message: string) => `❌ فشل الاستعلام عن الرصيد. ${message}`,
-  BALANCE_TIMEOUT: '⌛ انتهاء المهلة. لم يتم استلام أي رد خلال 60 ثانية.',
+  BALANCE_TIMEOUT: ' ❌ انتهاء المهلة. لم يتم استلام أي رد خلال 60 ثانية.',
 };
