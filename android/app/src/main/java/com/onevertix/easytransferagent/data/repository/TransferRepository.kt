@@ -4,6 +4,7 @@ import com.onevertix.easytransferagent.data.api.ApiService
 import com.onevertix.easytransferagent.data.api.RetrofitClient
 import com.onevertix.easytransferagent.data.models.BalanceResult
 import com.onevertix.easytransferagent.data.models.BalanceResultReport
+import com.onevertix.easytransferagent.data.models.JobResponse
 import com.onevertix.easytransferagent.data.models.TransferJob
 import com.onevertix.easytransferagent.data.models.TransferResult
 import com.onevertix.easytransferagent.data.models.TransferResultReport
@@ -38,7 +39,46 @@ class DefaultTransferRepository(
                 deviceId = "" // Will be added by AuthInterceptor
             )
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val jobResponse = response.body()!!
+
+                // If no jobs available
+                if (jobResponse.request == null && jobResponse.jobType == null) {
+                    return Result.success(emptyList())
+                }
+
+                // Convert response to TransferJob list
+                val jobs = mutableListOf<TransferJob>()
+
+                when (jobResponse.jobType) {
+                    "balance" -> {
+                        jobs.add(TransferJob(
+                            jobType = "balance",
+                            requestId = null,
+                            jobId = jobResponse.jobId,
+                            recipientPhone = null,
+                            amount = null,
+                            operatorCode = null,
+                            operator = jobResponse.operator,
+                            ussdPattern = null
+                        ))
+                    }
+                    "transfer" -> {
+                        jobResponse.request?.let { req ->
+                            jobs.add(TransferJob(
+                                jobType = "transfer",
+                                requestId = req.id,
+                                jobId = null,
+                                recipientPhone = req.recipientPhone,
+                                amount = req.amount,
+                                operatorCode = req.operator,
+                                operator = null,
+                                ussdPattern = null
+                            ))
+                        }
+                    }
+                }
+
+                Result.success(jobs)
             } else {
                 Result.failure(Exception("Failed to get pending jobs: ${response.code()}"))
             }

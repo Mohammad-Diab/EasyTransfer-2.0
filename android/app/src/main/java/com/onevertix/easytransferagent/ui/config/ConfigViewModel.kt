@@ -208,7 +208,7 @@ class ConfigViewModel : ViewModel() {
     fun isFullConfigurationComplete(): Boolean {
         val lp = localPreferences
         val sec = secureStorage
-        return lp?.getSim1Operator() != null || lp?.getSim2Operator() != null && sec?.hasUssdPassword() == true
+        return ((lp?.getSim1Operator() != null || lp?.getSim2Operator() != null) && sec?.hasUssdPassword() == true)
     }
 }
 
