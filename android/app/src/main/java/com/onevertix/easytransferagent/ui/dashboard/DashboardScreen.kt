@@ -51,6 +51,11 @@ fun DashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Mock Mode Indicator (Debug builds only)
+            if (com.onevertix.easytransferagent.ussd.MockUssdService.isEnabled()) {
+                MockModeIndicator()
+            }
+
             // Connection Status Indicator
             ConnectionStatusCard(stats = stats)
 
@@ -62,7 +67,7 @@ fun DashboardScreen(
             )
 
             // Statistics Cards
-            StatsOverviewCard(stats = stats)
+            // StatsOverviewCard(stats = stats)
 
             // Pending Jobs Card
             if (stats.pendingJobsCount > 0) {
@@ -351,6 +356,46 @@ private fun PendingJobsCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.tertiary
             )
+        }
+    }
+}
+
+@Composable
+private fun MockModeIndicator(
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = stringResource(R.string.icon_warning),
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(24.dp)
+            )
+            Column {
+                Text(
+                    text = "🧪 MOCK USSD MODE",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+                Text(
+                    text = "Using simulated USSD responses (${com.onevertix.easytransferagent.ussd.MockUssdService.getDelayMs()}ms delay)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }

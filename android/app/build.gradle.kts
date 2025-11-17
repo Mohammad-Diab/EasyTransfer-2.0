@@ -20,12 +20,18 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("boolean", "USE_MOCK_USSD", "true")
+            buildConfigField("long", "MOCK_USSD_DELAY_MS", "3000L")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("boolean", "USE_MOCK_USSD", "false")
+            buildConfigField("long", "MOCK_USSD_DELAY_MS", "0L")
         }
     }
     compileOptions {

@@ -30,6 +30,7 @@ class TransferExecutorService : Service() {
     private lateinit var transferRepository: DefaultTransferRepository
     private lateinit var notificationManager: NotificationManager
     private lateinit var ussdExecutor: UssdExecutor
+    private lateinit var mockUssdService: com.onevertix.easytransferagent.ussd.MockUssdService
     private lateinit var rulesRepository: com.onevertix.easytransferagent.data.repository.RulesRepository
     private lateinit var responseParser: com.onevertix.easytransferagent.ussd.ResponseParser
 
@@ -48,9 +49,17 @@ class TransferExecutorService : Service() {
         val localPrefs = LocalPreferences(this)
         transferRepository = DefaultTransferRepository(localPrefs)
         ussdExecutor = UssdExecutor(this)
+        mockUssdService = com.onevertix.easytransferagent.ussd.MockUssdService()
         rulesRepository = com.onevertix.easytransferagent.data.repository.RulesRepository(this, localPrefs)
         responseParser = rulesRepository.getParser()
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // Log mock USSD status
+        if (com.onevertix.easytransferagent.ussd.MockUssdService.isEnabled()) {
+            Logger.w("🧪 MOCK USSD MODE ENABLED - Delay: ${com.onevertix.easytransferagent.ussd.MockUssdService.getDelayMs()}ms", TAG)
+        } else {
+            Logger.i("✅ Real USSD mode enabled", TAG)
+        }
 
         // Create notification channel
         createNotificationChannel()
@@ -214,17 +223,31 @@ class TransferExecutorService : Service() {
     private suspend fun executeTransferJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
         updateNotification("Executing transfer to ${job.recipientPhone?.takeLast(4)?.let { "***$it" } ?: "unknown"}")
 
+        // Use mock USSD in debug mode, real USSD in production
+        if (com.onevertix.easytransferagent.ussd.MockUssdService.isEnabled()) {
+            // 🧪 Mock USSD execution for testing
+            executeMockTransferJob(job)
+        } else {
+            // ✅ Real USSD execution
+            executeRealTransferJob(job)
+        }
+    }
+
+    /**
+     * Execute real USSD transfer
+     */
+    private suspend fun executeRealTransferJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
         val result = ussdExecutor.executeTransfer(job)
 
         when (result) {
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
                 Logger.i("Transfer USSD executed successfully: ${result.jobId}", TAG)
 
-                // Get response (simulated for now, will be from Accessibility Service)
-                val simulatedResponse = simulateUssdResponse(result.operator)
+                // Get response (will be from Accessibility Service)
+                val ussdResponse = simulateUssdResponse(result.operator)
 
                 // Parse the response
-                val parseResult = responseParser.parseResponse(result.operator, simulatedResponse)
+                val parseResult = responseParser.parseResponse(result.operator, ussdResponse)
 
                 // Determine status and report to backend
                 val (status, message) = when (parseResult) {
@@ -270,6 +293,51 @@ class TransferExecutorService : Service() {
                 )
             }
         }
+    }
+
+    /**
+     * Execute mock USSD transfer (testing mode)
+     */
+    private suspend fun executeMockTransferJob(job: com.onevertix.easytransferagent.data.models.TransferJob) {
+        val mockResult = mockUssdService.executeMockTransfer(job)
+
+        // Parse the mock response
+        val operator = job.operatorCode ?: "UNKNOWN"
+        val parseResult = responseParser.parseResponse(operator, mockResult.response)
+
+        // Determine status
+        val (status, message) = when {
+            !mockResult.success -> {
+                Logger.w("🧪 Mock transfer failed: ${mockResult.response}", TAG)
+                updateNotification("Transfer failed")
+                "failed" to mockResult.response
+            }
+            parseResult is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
+                Logger.i("🧪 Mock transfer successful: ${parseResult.message}", TAG)
+                updateNotification("Transfer completed successfully")
+                "success" to parseResult.message
+            }
+            parseResult is com.onevertix.easytransferagent.data.models.ParseResult.Failure -> {
+                Logger.w("🧪 Mock transfer failed: ${parseResult.message}", TAG)
+                updateNotification("Transfer failed")
+                "failed" to parseResult.message
+            }
+            else -> {
+                Logger.w("🧪 Mock transfer result unclear", TAG)
+                updateNotification("Transfer result unclear")
+                "unknown" to mockResult.response
+            }
+        }
+
+        // Report to backend
+        reportTransferResult(
+            requestId = job.requestId ?: job.jobId ?: "unknown",
+            jobId = job.jobId,
+            status = status,
+            message = message,
+            operator = operator,
+            simSlot = 0 // Mock uses SIM 1
+        )
     }
 
     /**
@@ -331,15 +399,29 @@ class TransferExecutorService : Service() {
 
         updateNotification("Checking balance for $operator")
 
+        // Use mock USSD in debug mode, real USSD in production
+        if (com.onevertix.easytransferagent.ussd.MockUssdService.isEnabled()) {
+            // 🧪 Mock USSD execution for testing
+            executeMockBalanceJob(operator)
+        } else {
+            // ✅ Real USSD execution
+            executeRealBalanceJob(operator)
+        }
+    }
+
+    /**
+     * Execute real USSD balance inquiry
+     */
+    private suspend fun executeRealBalanceJob(operator: String) {
         val result = ussdExecutor.executeBalanceInquiry(operator)
 
         when (result) {
             is com.onevertix.easytransferagent.ussd.ExecutionResult.Success -> {
                 Logger.i("Balance inquiry executed successfully for $operator", TAG)
 
-                // Simulated response
-                val simulatedResponse = simulateBalanceResponse(operator)
-                val parseResult = responseParser.parseResponse(operator, simulatedResponse)
+                // Get response (will be from Accessibility Service)
+                val ussdResponse = simulateBalanceResponse(operator)
+                val parseResult = responseParser.parseResponse(operator, ussdResponse)
 
                 val (status, message) = when (parseResult) {
                     is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
@@ -375,6 +457,41 @@ class TransferExecutorService : Service() {
             }
         }
     }
+
+    /**
+     * Execute mock USSD balance inquiry (testing mode)
+     */
+    private suspend fun executeMockBalanceJob(operator: String) {
+        val mockResult = mockUssdService.executeMockBalance(operator)
+
+        // Parse the mock response
+        val parseResult = responseParser.parseResponse(operator, mockResult.response)
+
+        val (status, message) = when {
+            !mockResult.success -> {
+                Logger.w("🧪 Mock balance check failed: ${mockResult.response}", TAG)
+                "failed" to mockResult.response
+            }
+            parseResult is com.onevertix.easytransferagent.data.models.ParseResult.Success -> {
+                Logger.i("🧪 Mock balance check successful: ${parseResult.message}", TAG)
+                "success" to parseResult.message
+            }
+            else -> {
+                Logger.w("🧪 Mock balance check unclear", TAG)
+                "failed" to "Unable to determine balance"
+            }
+        }
+
+        // Report to backend
+        reportBalanceResult(
+            operator = operator,
+            status = status,
+            message = message,
+            balance = extractBalance(message),
+            simSlot = 0 // Mock uses SIM 1
+        )
+    }
+
 
     /**
      * Report balance result to backend
