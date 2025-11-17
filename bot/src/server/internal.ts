@@ -43,7 +43,7 @@ app.use('/internal', validateSecret);
 // POST /internal/notify-result - Transfer result notification
 app.post('/internal/notify-result', async (req: Request, res: Response) => {
   try {
-    const { telegram_user_id, transfer_id, status, reason } = req.body;
+    const { telegram_user_id, transfer_id, status, reason, amount, recipient_phone } = req.body;
 
     // Validate payload
     if (!telegram_user_id || !transfer_id || !status) {
@@ -60,7 +60,7 @@ app.post('/internal/notify-result', async (req: Request, res: Response) => {
     // Format message based on status
     let message: string;
     if (status === 'success') {
-      message = MESSAGES.TRANSFER_SUCCESS(transfer_id);
+      message = MESSAGES.TRANSFER_SUCCESS(amount, recipient_phone);
     } else if (status === 'failed') {
       message = MESSAGES.TRANSFER_FAILED(transfer_id, reason || 'غير معروف');
     } else {

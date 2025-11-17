@@ -60,6 +60,8 @@ export class BotClientService {
     transferId: number,
     status: 'success' | 'failed',
     reason?: string,
+    amount?: number,
+    recipientPhone?: string,
   ): Promise<void> {
     try {
       const response = await fetch(`${this.botInternalUrl}/internal/notify-result`, {
@@ -73,6 +75,8 @@ export class BotClientService {
           transfer_id: transferId,
           status,
           reason,
+          amount,
+          recipient_phone: recipientPhone,
         }),
       });
 

@@ -5,7 +5,8 @@ export const MESSAGES = {
   INVALID_FORMAT: 'يرجى استخدام الصيغة: /send <amount> <phone>',
   BACKEND_ERROR: 'حدث خطأ أثناء إرسال الطلب. يرجى المحاولة لاحقاً.',
   ERROR: 'حدث خطأ. يرجى المحاولة مرة أخرى.',
-  TRANSFER_SUCCESS: (id: number) => `✅ تم تنفيذ عملية التحويل (ID: ${id}) بنجاح.`,
+  TRANSFER_SUCCESS: (amount: number, recipientPhone: string) =>
+    `✅ تم تحويل ${amount.toLocaleString('en-US')} إلى ${recipientPhone} بنجاح`,
   TRANSFER_FAILED: (id: number, reason: string) =>
     `❌ فشلت عملية التحويل (ID: ${id}). السبب: ${reason}`,
   

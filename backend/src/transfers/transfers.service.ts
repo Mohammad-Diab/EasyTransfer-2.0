@@ -198,9 +198,20 @@ export class TransfersService {
       },
     });
 
+    // Check if user has an active device
+    const activeDevice = await this.prisma.device.findFirst({
+      where: {
+        user_id: userId,
+        status: 'active',
+      },
+    });
+
     // Prepare response message
     let message = 'تم استلام طلبك، وسيتم تنفيذ التحويل قريباً.';
-    if (status === 'delayed') {
+    
+    if (!activeDevice) {
+      message = 'تم استلام طلبك، سيتم التحويل عند ربط جهاز الأندرويد الخاص بك بحسابك.';
+    } else if (status === 'delayed') {
       const delaySeconds = Math.ceil(
         (execute_after.getTime() - Date.now()) / 1000,
       );
@@ -401,6 +412,8 @@ export class TransfersService {
         transfer.id,
         status,
         failureReason,
+        transfer.amount,
+        transfer.recipient_phone,
       );
     }
   }
