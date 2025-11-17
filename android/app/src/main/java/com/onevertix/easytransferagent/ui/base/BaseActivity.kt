@@ -8,7 +8,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.ui.theme.EasyTransferAgentTheme
 
 /**
@@ -18,13 +22,19 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val config = resources.configuration
+        config.setLayoutDirection(java.util.Locale("ar"))
+
         setContent {
-            EasyTransferAgentTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Content()
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                EasyTransferAgentTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Content()
+                    }
                 }
             }
         }
@@ -75,8 +85,7 @@ fun ErrorDisplay(
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = onDismiss) {
-            Text("Dismiss")
+            Text(stringResource(R.string.ok))
         }
     }
 }
-

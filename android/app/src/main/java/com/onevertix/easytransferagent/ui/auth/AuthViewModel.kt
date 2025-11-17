@@ -1,6 +1,8 @@
 package com.onevertix.easytransferagent.ui.auth
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.repository.AuthRepository
 import com.onevertix.easytransferagent.ui.base.BaseViewModel
 import com.onevertix.easytransferagent.utils.Validation
@@ -32,7 +34,8 @@ sealed class AuthUiState {
 }
 
 class AuthViewModel(
-    private val repo: AuthRepository
+    private val repo: AuthRepository,
+    private val context: Context
 ) : BaseViewModel() {
 
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.PhoneEntry())
@@ -55,7 +58,7 @@ class AuthViewModel(
         val st = (_uiState.value as? AuthUiState.PhoneEntry) ?: return
         val phone = st.phone
         if (!Validation.isValidSyrianPhone(phone)) {
-            _uiState.value = st.copy(phoneError = "رقم هاتف غير صالح")
+            _uiState.value = st.copy(phoneError = "الرجاء إدخال رقم بصيغة 09XXXXXXXX")
             return
         }
         _uiState.value = st.copy(isLoading = true, phoneError = null)
@@ -90,7 +93,7 @@ class AuthViewModel(
         val st = (_uiState.value as? AuthUiState.OtpEntry) ?: return
         val otp = st.otp
         if (!Validation.isValidOtp(otp)) {
-            _uiState.value = st.copy(otpError = "رمز تحقق غير صالح")
+            _uiState.value = st.copy(otpError = context.getString(R.string.error_invalid_otp))
             return
         }
         _uiState.value = st.copy(isLoading = true, otpError = null)
@@ -100,12 +103,12 @@ class AuthViewModel(
                 if (res.isSuccess) {
                     _uiState.value = AuthUiState.Authenticated
                 } else {
-                    _uiState.value = st.copy(isLoading = false, otpError = "رمز غير صحيح أو منتهي")
+                    _uiState.value = st.copy(isLoading = false, otpError = context.getString(R.string.error_wrong_otp))
                 }
             } catch (e: Exception) {
                 _uiState.value = st.copy(
                     isLoading = false,
-                    otpError = "Error: ${e.message}"
+                    otpError = context.getString(R.string.error_generic, e.message ?: "")
                 )
             }
         }

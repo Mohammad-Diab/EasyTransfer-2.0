@@ -11,9 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.utils.PermissionUtils
 
 /**
@@ -47,7 +49,7 @@ fun PermissionsScreen(
 
         // Title
         Text(
-            text = "Permissions Required",
+            text = stringResource(R.string.permissions_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -55,7 +57,7 @@ fun PermissionsScreen(
 
         // Description
         Text(
-            text = "This app needs the following permissions to execute money transfers via USSD codes.",
+            text = stringResource(R.string.permissions_desc),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -86,18 +88,18 @@ fun PermissionsScreen(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Open Settings")
+                Text(stringResource(R.string.open_settings))
             }
 
             OutlinedButton(
                 onClick = onRequestPermissions,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Try Again")
+                Text(stringResource(R.string.retry))
             }
 
             Text(
-                text = "Some permissions were permanently denied. Please enable them in app settings.",
+                text = stringResource(R.string.permissions_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center
@@ -114,7 +116,7 @@ fun PermissionsScreen(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Grant Permissions")
+                Text(stringResource(R.string.grant_permissions))
             }
         }
 
@@ -130,6 +132,7 @@ private fun PermissionCard(
     permission: String,
     modifier: Modifier = Modifier
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -156,13 +159,13 @@ private fun PermissionCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = PermissionUtils.getPermissionName(permission),
+                    text = PermissionUtils.getPermissionName(permission, context),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = PermissionUtils.getPermissionDescription(permission),
+                    text = PermissionUtils.getPermissionDescription(permission, context),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -201,7 +204,7 @@ fun PermissionsLoadingScreen(
         ) {
             CircularProgressIndicator()
             Text(
-                text = "Checking permissions...",
+                text = stringResource(R.string.checking_permissions),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -225,7 +228,7 @@ fun PermissionsGrantedScreen(
     ) {
         Icon(
             imageVector = Icons.Default.CheckCircle,
-            contentDescription = "Success",
+            contentDescription = stringResource(R.string.icon_check_circle),
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -233,7 +236,7 @@ fun PermissionsGrantedScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "All Permissions Granted",
+            text = stringResource(R.string.permissions_granted_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -242,7 +245,7 @@ fun PermissionsGrantedScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "The app is ready to execute transfers",
+            text = stringResource(R.string.permissions_granted_desc),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -254,7 +257,7 @@ fun PermissionsGrantedScreen(
             onClick = onContinue,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Continue")
+            Text(stringResource(R.string.continue_text))
         }
     }
 }

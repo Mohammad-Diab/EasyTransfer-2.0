@@ -41,6 +41,7 @@ export class AndroidController {
     const balanceJob = this.balanceService.getPendingBalanceJob(userId);
     if (balanceJob) {
       return {
+        success: true,
         job_type: 'balance',
         job_id: balanceJob.jobId,
         operator: balanceJob.operator,
@@ -50,10 +51,10 @@ export class AndroidController {
     // Fall back to transfer jobs
     const transfer = await this.transfersService.getNextPendingTransfer(deviceId);
     if (!transfer) {
-      return { message: 'No pending requests', request: null };
+      return { success: true, message: 'No pending requests', request: null };
     }
 
-    return { job_type: 'transfer', request: transfer };
+    return { success: true, job_type: 'transfer', request: transfer };
   }
 
   /**
@@ -74,6 +75,7 @@ export class AndroidController {
     );
 
     return {
+      success: true,
       message: 'Result submitted successfully',
       transfer_id: id,
       status: dto.status,
@@ -98,6 +100,7 @@ export class AndroidController {
 
     if (!completedJob) {
       return {
+        success: false,
         error: 'No active balance job found',
       };
     }
@@ -110,6 +113,7 @@ export class AndroidController {
     );
 
     return {
+      success: true,
       message: 'Balance result submitted successfully',
       job_id: completedJob.jobId,
       status: dto.status,
@@ -124,7 +128,8 @@ export class AndroidController {
   @UseGuards(AuthGuard('jwt'))
   @Get('rules')
   async getRules() {
-    return this.operatorsService.getOperatorRules();
+    const rules = await this.operatorsService.getOperatorRules();
+    return { success: true, rules };
   }
 
   /**
@@ -135,7 +140,8 @@ export class AndroidController {
   @UseGuards(AuthGuard('jwt'))
   @Get('rules/last-updated')
   async getRulesLastUpdated() {
-    return this.operatorsService.getRulesLastUpdated();
+    const timestamp = await this.operatorsService.getRulesLastUpdated();
+    return { success: true, timestamp };
   }
 
   /**
@@ -144,6 +150,6 @@ export class AndroidController {
    */
   @Get('health')
   async healthCheck() {
-    return { status: 'ok', timestamp: new Date() };
+    return { success: true, status: 'ok', timestamp: new Date() };
   }
 }

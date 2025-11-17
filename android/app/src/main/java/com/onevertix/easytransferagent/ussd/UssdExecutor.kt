@@ -9,6 +9,7 @@ import android.os.Build
 import android.telecom.PhoneAccountHandle
 import android.telecom.TelecomManager
 import androidx.core.content.ContextCompat
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.models.TransferJob
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.data.storage.SecureStorage
@@ -33,14 +34,14 @@ class UssdExecutor(private val context: Context) {
             // Check CALL_PHONE permission
             if (!hasCallPermission()) {
                 Logger.e("CALL_PHONE permission not granted", tag = TAG)
-                return ExecutionResult.Error("Permission denied: CALL_PHONE required")
+                return ExecutionResult.Error(context.getString(R.string.error_permission_denied, context.getString(R.string.permission_phone)))
             }
 
             // Get USSD password
             val password = secureStorage.getUssdPassword()
             if (password.isNullOrEmpty()) {
                 Logger.e("USSD password not configured", tag = TAG)
-                return ExecutionResult.Error("USSD password not configured")
+                return ExecutionResult.Error(context.getString(R.string.error_password_not_configured))
             }
 
             // Validate job data
@@ -50,14 +51,14 @@ class UssdExecutor(private val context: Context) {
 
             if (phone.isNullOrEmpty() || amount == null || amount <= 0 || operator.isNullOrEmpty()) {
                 Logger.e("Invalid job data: phone=$phone, amount=$amount, operator=$operator", tag = TAG)
-                return ExecutionResult.Error("Invalid job data")
+                return ExecutionResult.Error(context.getString(R.string.error_invalid_job))
             }
 
             // Get SIM slot for operator
             val simSlot = getSIMSlotForOperator(operator)
             if (simSlot == -1) {
                 Logger.e("No SIM configured for operator: $operator", tag = TAG)
-                return ExecutionResult.Error("No SIM card found for operator $operator")
+                return ExecutionResult.Error(context.getString(R.string.error_no_sim, operator))
             }
 
             // Build USSD code
@@ -82,7 +83,7 @@ class UssdExecutor(private val context: Context) {
 
         } catch (e: Exception) {
             Logger.e("Failed to execute transfer USSD: ${e.message}", e, TAG)
-            return ExecutionResult.Error("Execution failed: ${e.message}")
+            return ExecutionResult.Error(context.getString(R.string.transfer_error, e.message ?: ""))
         }
     }
 
@@ -94,13 +95,13 @@ class UssdExecutor(private val context: Context) {
             // Check CALL_PHONE permission
             if (!hasCallPermission()) {
                 Logger.e("CALL_PHONE permission not granted", tag = TAG)
-                return ExecutionResult.Error("Permission denied: CALL_PHONE required")
+                return ExecutionResult.Error(context.getString(R.string.error_permission_denied, context.getString(R.string.permission_phone)))
             }
 
             val simSlot = getSIMSlotForOperator(operator)
             if (simSlot == -1) {
                 Logger.e("No SIM configured for operator: $operator", tag = TAG)
-                return ExecutionResult.Error("No SIM card found for operator $operator")
+                return ExecutionResult.Error(context.getString(R.string.error_no_sim, operator))
             }
 
             val ussdCode = when (operator.uppercase()) {
@@ -108,7 +109,7 @@ class UssdExecutor(private val context: Context) {
                 Constants.OPERATOR_MTN_UPPER -> Constants.MTN_BALANCE_CODE
                 else -> {
                     Logger.e("Unknown operator: $operator", tag = TAG)
-                    return ExecutionResult.Error("Unknown operator: $operator")
+                    return ExecutionResult.Error(context.getString(R.string.transfer_error, context.getString(R.string.error_invalid_job)))
                 }
             }
 
@@ -123,7 +124,7 @@ class UssdExecutor(private val context: Context) {
 
         } catch (e: Exception) {
             Logger.e("Failed to execute balance USSD: ${e.message}", e, TAG)
-            return ExecutionResult.Error("Execution failed: ${e.message}")
+            return ExecutionResult.Error(context.getString(R.string.transfer_error, e.message ?: ""))
         }
     }
 
@@ -338,4 +339,3 @@ data class SimInfo(
     val availableSlots: Int,
     val hasCallPermission: Boolean
 )
-

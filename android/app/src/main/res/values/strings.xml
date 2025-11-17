@@ -1,3 +1,170 @@
 <resources>
     <string name="app_name">EasyTransferAgent</string>
+
+    <!-- Permissions Screen -->
+    <string name="permissions_title">الأذونات المطلوبة</string>
+    <string name="permissions_desc">يحتاج التطبيق إلى الأذونات التالية للعمل بشكل صحيح</string>
+    <string name="permission_phone">الهاتف</string>
+    <string name="permission_phone_desc">لتنفيذ أكواد USSD ودعم الشريحتين</string>
+    <string name="permission_notifications">الإشعارات</string>
+    <string name="permission_notifications_desc">لإعلامك بحالة التحويلات</string>
+    <string name="permission_network">الشبكة</string>
+    <string name="permission_network_desc">للاتصال بالخادم الخلفي</string>
+    <string name="grant_permissions">منح الأذونات</string>
+    <string name="open_settings">فتح الإعدادات</string>
+    <string name="checking_permissions">جاري التحقق من الأذونات…</string>
+    <string name="permissions_granted_title">تم منح جميع الأذونات</string>
+    <string name="permissions_granted_desc">التطبيق جاهز لتنفيذ التحويلات</string>
+
+    <!-- Server Setup Screen -->
+    <string name="server_title">إعداد الخادم</string>
+    <string name="server_url_label">عنوان URL للخادم</string>
+    <string name="server_url_hint">https://api.example.com</string>
+    <string name="server_desc">أدخل عنوان URL لخادم الواجهة الخلفية. سنختبر الاتصال قبل المتابعة.</string>
+    <string name="test_connection">اختبار الاتصال</string>
+    <string name="testing_connection">جاري الاختبار…</string>
+    <string name="connection_successful">الاتصال نجح!</string>
+    <string name="connected_to">متصل بـ:\n%1$s</string>
+    <string name="continue_setup">متابعة الإعداد</string>
+    <string name="server_requirements">المتطلبات:</string>
+    <string name="req_https">• يجب أن يبدأ الرابط بـ https://</string>
+    <string name="req_ping">• يجب أن يستجيب الخادم للاتصال</string>
+    <string name="req_example">• مثال: https://api.easytransfer.com</string>
+    <string name="error_https_required">يجب أن يبدأ الرابط بـ https://</string>
+    <string name="error_invalid_url">صيغة الرابط غير صحيحة</string>
+    <string name="error_cannot_connect">لا يمكن الاتصال بالخادم. تحقق من الرابط والاتصال بالإنترنت.</string>
+    <string name="error_timeout">انتهت مهلة الاتصال. الخادم لا يستجيب.</string>
+    <string name="error_ssl">خطأ في شهادة SSL. تحقق من إعدادات الخادم.</string>
+    <string name="error_connection_failed">فشل الاتصال: %1$s</string>
+
+    <!-- Configuration Screen -->
+    <string name="config_title">الإعدادات</string>
+    <string name="config_desc">قم بإعداد خرائط SIM وكلمة مرور USSD</string>
+    <string name="sim1_operator">مشغل الشريحة 1</string>
+    <string name="sim2_operator">مشغل الشريحة 2</string>
+    <string name="select_operator">اختر المشغل</string>
+    <string name="operator_syriatel">سيرياتل</string>
+    <string name="operator_mtn">MTN</string>
+    <string name="ussd_password">كلمة مرور USSD</string>
+    <string name="ussd_password_hint">أدخل كلمة مرور USSD</string>
+    <string name="save_config">حفظ الإعدادات</string>
+    <string name="config_saved">تم حفظ الإعدادات بنجاح!</string>
+    <string name="continue_to_login">متابعة لتسجيل الدخول</string>
+    <string name="error_fill_fields">يرجى ملء جميع الحقول</string>
+    <string name="error_save_config_failed">فشل حفظ الإعدادات: %1$s</string>
+    <string name="error_server_url_required">عنوان الخادم مطلوب</string>
+    <string name="error_ussd_password_required">كلمة مرور USSD مطلوبة</string>
+    <string name="error_password_min_digits">يجب أن تتكون كلمة المرور من 4 أرقام على الأقل</string>
+    <string name="error_password_digits_only">يجب أن تحتوي كلمة المرور على أرقام فقط</string>
+    <string name="error_sim_mapping_required">يجب تحديد مشغل شريحة واحدة على الأقل</string>
+
+    <!-- Login Screen -->
+    <string name="login_title">تسجيل الدخول</string>
+    <string name="login_desc">أدخل رقم هاتفك للحصول على رمز OTP</string>
+    <string name="phone_label">رقم الهاتف (09XXXXXXXX)</string>
+    <string name="phone_hint">0912345678</string>
+    <string name="send_otp">إرسال رمز التحقق</string>
+    <string name="sending">جاري الإرسال…</string>
+    <string name="error_invalid_phone">رقم هاتف غير صالح</string>
+    <string name="error_invalid_phone_format">الرجاء إدخال رقم بصيغة 09XXXXXXXX</string>
+    <string name="error_send_otp">تعذر إرسال الرمز، حاول لاحقاً</string>
+    <string name="error_server_not_configured">لم يتم تكوين عنوان URL للخادم</string>
+    <string name="error_cannot_connect_server">لا يمكن الاتصال بالخادم</string>
+    <string name="error_generic">خطأ: %1$s</string>
+
+    <!-- OTP Screen -->
+    <string name="otp_title">التحقق من الرمز</string>
+    <string name="otp_desc">أدخل رمز التحقق المكون من 6 أرقام المرسل إلى %1$s</string>
+    <string name="otp_label">رمز التحقق</string>
+    <string name="otp_hint">123456</string>
+    <string name="verify_otp">التحقق</string>
+    <string name="verifying">جاري التحقق…</string>
+    <string name="resend_otp">إعادة إرسال الرمز</string>
+    <string name="resend_in">إعادة الإرسال خلال %1$d ثانية</string>
+    <string name="edit_phone">تعديل رقم الهاتف</string>
+    <string name="error_invalid_otp">رمز تحقق غير صالح</string>
+    <string name="error_wrong_otp">رمز غير صحيح أو منتهي الصلاحية</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">لوحة التحكم</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string name="connected">متصل</string>
+    <string name="disconnected">غير متصل</string>
+    <string name="last_transfer">آخر تحويل</string>
+    <string name="just_now">الآن</string>
+    <string name="minutes_ago">منذ %1$d د</string>
+    <string name="hours_ago">منذ %1$d س</string>
+    <string name="days_ago">منذ %1$d يوم</string>
+    <string name="recently">مؤخراً</string>
+
+    <!-- Service Status -->
+    <string name="transfer_service">خدمة التحويل</string>
+    <string name="service_running">الخدمة تعمل وتستطلع الوظائف</string>
+    <string name="service_stopped">الخدمة متوقفة</string>
+    <string name="start_service">تشغيل الخدمة</string>
+    <string name="stop_service">إيقاف الخدمة</string>
+
+    <!-- Statistics -->
+    <string name="statistics">الإحصائيات</string>
+    <string name="today">اليوم</string>
+    <string name="this_week">هذا الأسبوع</string>
+    <string name="total">الإجمالي</string>
+    <string name="transfers_count">%1$d تحويلات</string>
+    <string name="success">نجح</string>
+    <string name="failed">فشل</string>
+    <string name="pending_jobs">الوظائف المعلقة</string>
+    <string name="authenticated">تم المصادقة</string>
+    <string name="not_authenticated">لم تتم المصادقة</string>
+
+    <!-- Transfer Execution -->
+    <string name="executing_transfer">جاري تنفيذ التحويل إلى %1$s</string>
+    <string name="transfer_completed">اكتمل التحويل بنجاح</string>
+    <string name="transfer_failed">فشل التحويل</string>
+    <string name="transfer_unclear">نتيجة التحويل غير واضحة</string>
+    <string name="transfer_error">خطأ في التحويل: %1$s</string>
+    <string name="checking_balance">جاري التحقق من الرصيد لـ %1$s</string>
+    <string name="processing_jobs">جاري معالجة %1$d وظيفة</string>
+    <string name="waiting_jobs">في انتظار الوظائف</string>
+
+    <!-- Notification -->
+    <string name="notification_channel_name">خدمة التحويل</string>
+    <string name="notification_channel_desc">إشعارات لحالة خدمة التحويل</string>
+    <string name="notification_title">خدمة التحويل تعمل</string>
+    <string name="notification_desc">جاري استطلاع الوظائف وتنفيذ التحويلات</string>
+
+    <!-- Errors -->
+    <string name="error">خطأ</string>
+    <string name="error_network">خطأ في الشبكة</string>
+    <string name="error_permission_denied">تم رفض الإذن: مطلوب إذن %1$s</string>
+    <string name="error_no_sim">لم يتم العثور على بطاقة SIM للمشغل %1$s</string>
+    <string name="error_invalid_job">بيانات الوظيفة غير صالحة</string>
+    <string name="error_password_not_configured">لم يتم تكوين كلمة مرور USSD</string>
+
+    <!-- Common -->
+    <string name="loading">جاري التحميل…</string>
+    <string name="please_wait">الرجاء الانتظار</string>
+    <string name="continue_text">متابعة</string>
+    <string name="cancel">إلغاء</string>
+    <string name="ok">موافق</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="save">حفظ</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="security_password_note">يتم تشفير كلمة المرور وتخزينها بشكل آمن</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+
+    <!-- Icon Content Descriptions for Accessibility -->
+    <string name="icon_lock">قفل</string>
+    <string name="icon_settings">الإعدادات</string>
+    <string name="icon_check">علامة صح</string>
+    <string name="icon_phone">هاتف</string>
+    <string name="icon_notifications">إشعارات</string>
+    <string name="icon_info">معلومات</string>
+    <string name="icon_check_circle">دائرة بعلامة صح</string>
+    <string name="icon_close">إغلاق</string>
+    <string name="icon_play">تشغيل</string>
+    <string name="icon_warning">تحذير</string>
+    <string name="icon_list">قائمة</string>
+    <string name="icon_refresh">تحديث</string>
 </resources>

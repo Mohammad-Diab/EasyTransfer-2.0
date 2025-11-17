@@ -10,6 +10,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.onevertix.easytransferagent.R
 
 /**
  * Utility object for runtime permission management
@@ -202,12 +203,12 @@ object PermissionUtils {
     /**
      * Get human-readable permission name
      */
-    fun getPermissionName(permission: String): String {
+    fun getPermissionName(permission: String, context: Context? = null): String {
         return when (permission) {
-            Manifest.permission.CALL_PHONE -> "Phone Call"
-            Manifest.permission.READ_PHONE_STATE -> "Phone State"
-            Manifest.permission.READ_PHONE_NUMBERS -> "Phone Numbers"
-            Manifest.permission.POST_NOTIFICATIONS -> "Notifications"
+            Manifest.permission.CALL_PHONE -> context?.getString(R.string.permission_phone) ?: "الهاتف"
+            Manifest.permission.READ_PHONE_STATE -> context?.getString(R.string.permission_phone) ?: "حالة الهاتف"
+            Manifest.permission.READ_PHONE_NUMBERS -> context?.getString(R.string.permission_phone) ?: "أرقام الهاتف"
+            Manifest.permission.POST_NOTIFICATIONS -> context?.getString(R.string.permission_notifications) ?: "الإشعارات"
             else -> permission.substringAfterLast('.')
         }
     }
@@ -215,17 +216,17 @@ object PermissionUtils {
     /**
      * Get permission description for user
      */
-    fun getPermissionDescription(permission: String): String {
+    fun getPermissionDescription(permission: String, context: Context? = null): String {
         return when (permission) {
             Manifest.permission.CALL_PHONE ->
-                "Required to execute USSD codes for money transfers"
+                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لتنفيذ أكواد USSD للتحويلات"
             Manifest.permission.READ_PHONE_STATE ->
-                "Required to detect SIM cards and manage dual SIM"
+                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لاكتشاف بطاقات SIM وإدارة الشريحتين"
             Manifest.permission.READ_PHONE_NUMBERS ->
-                "Required for dual SIM support and operator detection"
+                context?.getString(R.string.permission_phone_desc) ?: "مطلوب لدعم الشريحتين واكتشاف المشغل"
             Manifest.permission.POST_NOTIFICATIONS ->
-                "Required to show transfer status notifications"
-            else -> "Required for app functionality"
+                context?.getString(R.string.permission_notifications_desc) ?: "مطلوب لعرض إشعارات حالة التحويل"
+            else -> "مطلوب لعمل التطبيق"
         }
     }
 
@@ -239,4 +240,3 @@ object PermissionUtils {
         object Unknown : PermissionResult()
     }
 }
-

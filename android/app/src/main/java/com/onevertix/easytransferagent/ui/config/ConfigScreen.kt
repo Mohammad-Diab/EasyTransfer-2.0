@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -17,6 +18,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.onevertix.easytransferagent.R
 
 /**
  * Configuration screen for server URL, SIM mapping, and USSD password
@@ -35,7 +37,7 @@ fun ConfigScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Configuration") },
+                title = { Text(stringResource(R.string.config_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -53,13 +55,13 @@ fun ConfigScreen(
         ) {
             // Header
             Text(
-                text = "Setup Your Configuration",
+                text = stringResource(R.string.config_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Configure server connection and SIM card operators",
+                text = stringResource(R.string.config_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -110,7 +112,7 @@ fun ConfigScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Saving...")
+                    Text(stringResource(R.string.loading))
                 } else {
                     Icon(
                         imageVector = Icons.Default.Check,
@@ -118,7 +120,7 @@ fun ConfigScreen(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Save Configuration")
+                    Text(stringResource(R.string.save_config))
                 }
             }
 
@@ -158,14 +160,14 @@ private fun ServerUrlSection(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Server URL",
+                    text = stringResource(R.string.server_url_label),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             Text(
-                text = "Backend server URL for API communication",
+                text = stringResource(R.string.config_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -174,8 +176,8 @@ private fun ServerUrlSection(
                 value = serverUrl,
                 onValueChange = onServerUrlChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text("HTTPS URL") },
-                placeholder = { Text("https://api.example.com") },
+                label = { Text(stringResource(R.string.server_url_label)) },
+                placeholder = { Text(stringResource(R.string.server_url_hint)) },
                 leadingIcon = {
                     Icon(Icons.Default.Lock, contentDescription = null)
                 },
@@ -185,8 +187,14 @@ private fun ServerUrlSection(
                     keyboardType = KeyboardType.Uri,
                     imeAction = ImeAction.Next
                 ),
-                enabled = enabled,
-                singleLine = true
+                enabled = false, // Disabled - server URL is set from previous step
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
     }
@@ -224,21 +232,21 @@ private fun SimMappingSection(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "SIM Card Mapping",
+                    text = stringResource(R.string.config_desc),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             Text(
-                text = "Map each SIM slot to its operator (at least one required)",
+                text = stringResource(R.string.config_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             // SIM 1
             OperatorDropdown(
-                label = "SIM Slot 1",
+                label = stringResource(R.string.sim1_operator),
                 selectedOperator = sim1Operator,
                 onOperatorChange = onSim1Change,
                 enabled = enabled
@@ -246,7 +254,7 @@ private fun SimMappingSection(
 
             // SIM 2
             OperatorDropdown(
-                label = "SIM Slot 2",
+                label = stringResource(R.string.sim2_operator),
                 selectedOperator = sim2Operator,
                 onOperatorChange = onSim2Change,
                 enabled = enabled
@@ -268,11 +276,12 @@ private fun OperatorDropdown(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     val operators = listOf(
-        "" to "Not Used",
-        "syriatel" to "Syriatel",
-        "mtn" to "MTN"
+        "" to context.getString(R.string.select_operator),
+        "syriatel" to context.getString(R.string.operator_syriatel),
+        "mtn" to context.getString(R.string.operator_mtn)
     )
 
     ExposedDropdownMenuBox(
@@ -281,7 +290,7 @@ private fun OperatorDropdown(
         modifier = modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = operators.find { it.first == selectedOperator }?.second ?: "Not Used",
+            value = operators.find { it.first == selectedOperator }?.second ?: context.getString(R.string.select_operator),
             onValueChange = {},
             modifier = Modifier
                 .fillMaxWidth()
@@ -340,25 +349,25 @@ private fun UssdPasswordSection(
             ) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.icon_lock),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "USSD Password",
+                    text = stringResource(R.string.ussd_password),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             Text(
-                text = "Password for executing USSD money transfers",
+                text = stringResource(R.string.config_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             if (hasExistingPassword) {
                 Text(
-                    text = "✓ Password is already configured. Leave blank to keep existing.",
+                    text = stringResource(R.string.config_saved),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -368,16 +377,16 @@ private fun UssdPasswordSection(
                 value = password,
                 onValueChange = onPasswordChange,
                 modifier = Modifier.fillMaxWidth(),
-                label = { Text(if (hasExistingPassword) "New Password (optional)" else "Password") },
-                placeholder = { Text("Enter 4+ digit password") },
+                label = { Text(if (hasExistingPassword) stringResource(R.string.ussd_password) else stringResource(R.string.ussd_password)) },
+                placeholder = { Text(stringResource(R.string.ussd_password_hint)) },
                 leadingIcon = {
                     Icon(Icons.Default.Lock, contentDescription = null)
                 },
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = if (passwordVisible) Icons.Default.Done else Icons.Default.Info,
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password)
                         )
                     }
                 },
@@ -404,12 +413,12 @@ private fun UssdPasswordSection(
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.icon_info),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Password is encrypted and stored securely",
+                    text = stringResource(R.string.security_password_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -435,7 +444,7 @@ fun ConfigLoadingScreen(
         ) {
             CircularProgressIndicator()
             Text(
-                text = "Loading configuration...",
+                text = stringResource(R.string.loading),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -459,7 +468,7 @@ fun ConfigSuccessScreen(
     ) {
         Icon(
             imageVector = Icons.Default.CheckCircle,
-            contentDescription = "Success",
+            contentDescription = stringResource(R.string.icon_check_circle),
             modifier = Modifier.size(100.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -467,7 +476,7 @@ fun ConfigSuccessScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Configuration Saved",
+            text = stringResource(R.string.config_saved),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -476,7 +485,7 @@ fun ConfigSuccessScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Your server and SIM settings have been configured successfully",
+            text = stringResource(R.string.config_desc),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -488,7 +497,7 @@ fun ConfigSuccessScreen(
             onClick = onContinue,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Continue to Login")
+            Text(stringResource(R.string.continue_to_login))
         }
     }
 }

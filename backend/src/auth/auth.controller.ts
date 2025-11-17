@@ -58,6 +58,7 @@ export class AuthController {
   async requestAndroidOtp(@Body() dto: RequestOtpDto) {
     await this.authService.requestAndroidOtp(dto.phone);
     return {
+      success: true,
       message: 'تم إرسال رمز التحقق عبر تيليغرام',
     };
   }
@@ -69,11 +70,15 @@ export class AuthController {
   @Post('android/verify-otp')
   @HttpCode(HttpStatus.OK)
   async verifyAndroidOtp(@Body() dto: VerifyAndroidOtpDto) {
-    return this.authService.verifyAndroidOtp(
+    const result = await this.authService.verifyAndroidOtp(
       dto.phone,
       dto.code,
       dto.device_id,
       dto.device_name,
     );
+    return {
+      success: true,
+      ...result,
+    };
   }
 }

@@ -7,9 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.data.storage.SecureStorage
 import com.onevertix.easytransferagent.data.repository.DefaultAuthRepository
@@ -38,21 +43,26 @@ class MainActivity : ComponentActivity() {
         serverSetupViewModel.initialize(this)
         configViewModel.initialize(this)
 
+        val config = resources.configuration
+        config.setLayoutDirection(java.util.Locale("ar"))
+
         setContent {
-            EasyTransferAgentTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainContent(
-                        modifier = Modifier.padding(innerPadding),
-                        permissionsViewModel = permissionsViewModel,
-                        serverSetupViewModel = serverSetupViewModel,
-                        configViewModel = configViewModel,
-                        onRequestPermissions = {
-                            permissionsViewModel.requestPermissions(this)
-                        },
-                        onOpenSettings = {
-                            permissionsViewModel.openAppSettings(this)
-                        }
-                    )
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+                EasyTransferAgentTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        MainContent(
+                            modifier = Modifier.padding(innerPadding),
+                            permissionsViewModel = permissionsViewModel,
+                            serverSetupViewModel = serverSetupViewModel,
+                            configViewModel = configViewModel,
+                            onRequestPermissions = {
+                                permissionsViewModel.requestPermissions(this)
+                            },
+                            onOpenSettings = {
+                                permissionsViewModel.openAppSettings(this)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -92,14 +102,34 @@ fun MainContent(
     val authRepo = remember {
         DefaultAuthRepository(LocalPreferences(context), SecureStorage(context))
     }
-    val authViewModel = remember { AuthViewModel(authRepo) }
+    val authViewModel = remember { AuthViewModel(authRepo, context) }
 
-    var currentScreen by remember { mutableStateOf(AppScreen.PERMISSIONS) }
+    // Determine initial screen based on app state
+    val localPrefs = remember { LocalPreferences(context) }
+    val initialScreen = remember {
+        when {
+            // If user is logged in and configured, go directly to dashboard
+            authRepo.isLoggedIn() && localPrefs.isSetupComplete() -> AppScreen.DASHBOARD
+            // If configured but not logged in, go to login
+            localPrefs.isSetupComplete() -> AppScreen.AUTH_LOGIN
+            // If server URL is set but not fully configured, go to configuration
+            localPrefs.getServerUrl() != null -> AppScreen.CONFIGURATION
+            // Otherwise start from permissions
+            else -> AppScreen.PERMISSIONS
+        }
+    }
+
+    var currentScreen by remember { mutableStateOf(initialScreen) }
+
+    // Check existing auth on start
+    LaunchedEffect(Unit) {
+        authViewModel.checkExistingAuth()
+    }
 
     // Navigation rules - follow strict sequence
     LaunchedEffect(permissionsState) {
         if (permissionsState is PermissionsUiState.Granted) {
-            // After permissions granted, check server setup
+            // After permissions granted, go to server setup
             currentScreen = AppScreen.SERVER_SETUP
         }
     }
@@ -107,8 +137,8 @@ fun MainContent(
     LaunchedEffect(serverSetupState) {
         when (serverSetupState) {
             is ServerSetupUiState.Success -> {
-                // Server configured, move to configuration
-                currentScreen = AppScreen.CONFIGURATION
+                // Server configured, move to login
+                currentScreen = AppScreen.AUTH_LOGIN
             }
             else -> {
                 // Server not configured yet, stay on SERVER_SETUP
@@ -116,22 +146,14 @@ fun MainContent(
         }
     }
 
-    LaunchedEffect(configState) {
-        if (configState is ConfigUiState.Success) {
-            // After config saved, go to auth
-            authViewModel.checkExistingAuth()
-            currentScreen = AppScreen.AUTH_LOGIN
-        }
-    }
-
-    // Observe auth state to navigate - but only when we're already on auth screens
+    // Observe auth state to navigate
     val authState by authViewModel.uiState.collectAsState()
     LaunchedEffect(authState) {
-        // Only navigate based on auth state if we're on auth/dashboard screens
         when (authState) {
             is AuthUiState.Authenticated -> {
-                if (currentScreen in listOf(AppScreen.AUTH_LOGIN, AppScreen.AUTH_OTP, AppScreen.DASHBOARD)) {
-                    currentScreen = AppScreen.DASHBOARD
+                // After authentication, go to configuration
+                if (currentScreen in listOf(AppScreen.AUTH_LOGIN, AppScreen.AUTH_OTP)) {
+                    currentScreen = AppScreen.CONFIGURATION
                 }
             }
             is AuthUiState.OtpEntry -> {
@@ -140,8 +162,15 @@ fun MainContent(
                 }
             }
             is AuthUiState.PhoneEntry -> {
-                // Don't override other screens, only set to login if we're already in auth flow
+                // Stay on login screen
             }
+        }
+    }
+
+    LaunchedEffect(configState) {
+        if (configState is ConfigUiState.Success) {
+            // After config saved, go to dashboard
+            currentScreen = AppScreen.DASHBOARD
         }
     }
 
@@ -178,27 +207,6 @@ fun MainContent(
                     modifier = modifier,
                     serverUrl = state.serverUrl,
                     onContinue = {
-                        currentScreen = AppScreen.CONFIGURATION
-                    }
-                )
-            }
-        }
-        AppScreen.CONFIGURATION -> {
-            when (val state = configState) {
-                is ConfigUiState.Loading -> ConfigLoadingScreen(modifier)
-                is ConfigUiState.Editing -> ConfigScreen(
-                    modifier = modifier,
-                    uiState = state,
-                    onServerUrlChange = configViewModel::updateServerUrl,
-                    onSim1OperatorChange = configViewModel::updateSim1Operator,
-                    onSim2OperatorChange = configViewModel::updateSim2Operator,
-                    onUssdPasswordChange = configViewModel::updateUssdPassword,
-                    onSaveClick = configViewModel::saveConfiguration
-                )
-                is ConfigUiState.Success -> ConfigSuccessScreen(
-                    modifier = modifier,
-                    onContinue = {
-                        authViewModel.checkExistingAuth()
                         currentScreen = AppScreen.AUTH_LOGIN
                     }
                 )
@@ -213,7 +221,15 @@ fun MainContent(
                     onSubmit = authViewModel::submitPhone
                 )
                 is AuthUiState.OtpEntry -> { /* handled in AUTH_OTP */ }
-                is AuthUiState.Authenticated -> DashboardPlaceholder(modifier)
+                is AuthUiState.Authenticated -> {
+                    // Show loading while transitioning to configuration
+                    Box(
+                        modifier = modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
             }
         }
         AppScreen.AUTH_OTP -> {
@@ -232,7 +248,35 @@ fun MainContent(
                     onPhoneChange = authViewModel::onPhoneChange,
                     onSubmit = authViewModel::submitPhone
                 )
-                is AuthUiState.Authenticated -> DashboardPlaceholder(modifier)
+                is AuthUiState.Authenticated -> {
+                    // Show loading while transitioning to configuration
+                    Box(
+                        modifier = modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+        }
+        AppScreen.CONFIGURATION -> {
+            when (val state = configState) {
+                is ConfigUiState.Loading -> ConfigLoadingScreen(modifier)
+                is ConfigUiState.Editing -> ConfigScreen(
+                    modifier = modifier,
+                    uiState = state,
+                    onServerUrlChange = configViewModel::updateServerUrl,
+                    onSim1OperatorChange = configViewModel::updateSim1Operator,
+                    onSim2OperatorChange = configViewModel::updateSim2Operator,
+                    onUssdPasswordChange = configViewModel::updateUssdPassword,
+                    onSaveClick = configViewModel::saveConfiguration
+                )
+                is ConfigUiState.Success -> ConfigSuccessScreen(
+                    modifier = modifier,
+                    onContinue = {
+                        currentScreen = AppScreen.DASHBOARD
+                    }
+                )
             }
         }
         AppScreen.DASHBOARD -> {
@@ -273,24 +317,15 @@ fun MainContent(
     }
 }
 
-@Composable
-private fun DashboardPlaceholder(modifier: Modifier = Modifier) {
-    androidx.compose.foundation.layout.Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        androidx.compose.material3.Text(text = "Logged in! Dashboard coming soon")
-    }
-}
-
 /**
  * App screen navigation enum
+ * Flow: PERMISSIONS → SERVER_SETUP → AUTH_LOGIN → AUTH_OTP → CONFIGURATION → DASHBOARD
  */
 private enum class AppScreen {
     PERMISSIONS,
     SERVER_SETUP,
-    CONFIGURATION,
     AUTH_LOGIN,
     AUTH_OTP,
+    CONFIGURATION,
     DASHBOARD
 }

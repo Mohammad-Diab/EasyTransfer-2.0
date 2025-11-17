@@ -11,17 +11,17 @@ interface ApiService {
 
     // ========== Authentication Endpoints ==========
 
-    @POST("/api/android/auth/request-otp")
+    @POST("/api/auth/android/request-otp")
     suspend fun requestOtp(
         @Body request: OtpRequest
     ): Response<OtpRequestResponse>
 
-    @POST("/api/android/auth/verify-otp")
+    @POST("/api/auth/android/verify-otp")
     suspend fun verifyOtp(
         @Body request: OtpVerification
     ): Response<AuthResponse>
 
-    @POST("/api/android/auth/logout")
+    @POST("/api/auth/android/logout")
     suspend fun logout(
         @Header("Authorization") token: String,
         @Header("X-Device-ID") deviceId: String
@@ -67,7 +67,7 @@ interface ApiService {
 
     // ========== Health Check ==========
 
-    @GET("/api/android/status")
+    @GET("/api/android/health")
     suspend fun healthCheck(): Response<Unit>
 
     // ========== Operator Rules ==========

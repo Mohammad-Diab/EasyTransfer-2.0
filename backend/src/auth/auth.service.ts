@@ -124,7 +124,7 @@ export class AuthService {
     code: string,
     deviceId: string,
     deviceName?: string,
-  ): Promise<{ access_token: string; device_id: string; user: any }> {
+  ): Promise<{ access_token: string; expires_in: number; device_id: string; user: any }> {
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
@@ -147,15 +147,22 @@ export class AuthService {
       data: { used_at: new Date() },
     });
 
-    // One-device policy: revoke old devices
+    // One-device policy: revoke old devices for this user
     await this.prisma.device.updateMany({
       where: { user_id: user.id, status: 'active' },
       data: { status: 'revoked' },
     });
 
-    // Register new device
-    const device = await this.prisma.device.create({
-      data: {
+    // Register or update device
+    const device = await this.prisma.device.upsert({
+      where: { device_id: deviceId },
+      update: {
+        user_id: user.id,
+        device_name: deviceName,
+        status: 'active',
+        last_active: new Date(),
+      },
+      create: {
         user_id: user.id,
         device_id: deviceId,
         device_name: deviceName,
@@ -164,13 +171,34 @@ export class AuthService {
       },
     });
 
+    const expiresIn = this.config.get('JWT_ANDROID_EXPIRATION') || '30d';
     const access_token = await this.generateAndroidToken(user.id, user.phone, user.role);
+
+    // Convert expiration to seconds
+    const expiresInSeconds = this.parseExpirationToSeconds(expiresIn);
 
     return {
       access_token,
+      expires_in: expiresInSeconds,
       device_id: device.device_id,
       user: { id: user.id, phone: user.phone, name: user.name, role: user.role },
     };
+  }
+
+  private parseExpirationToSeconds(expiration: string): number {
+    const match = expiration.match(/^(\d+)([smhd])$/);
+    if (!match) return 30 * 24 * 60 * 60; // Default 30 days
+
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 's': return value;
+      case 'm': return value * 60;
+      case 'h': return value * 60 * 60;
+      case 'd': return value * 24 * 60 * 60;
+      default: return 30 * 24 * 60 * 60;
+    }
   }
 
   async generateWebToken(userId: number, phone: string, role: string) {

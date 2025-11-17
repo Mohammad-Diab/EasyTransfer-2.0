@@ -9,7 +9,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class OtpRequestResponse(
     @Json(name = "success")
-    val success: Boolean,
+    val success: Boolean = true,  // Default to true if not provided
 
     @Json(name = "message")
     val message: String
@@ -29,8 +29,26 @@ data class AuthResponse(
     @Json(name = "expires_in")
     val expiresIn: Long,  // 90 days in seconds
 
-    @Json(name = "user_id")
-    val userId: String
+    @Json(name = "user")
+    val user: User
+)
+
+/**
+ * User info from auth response
+ */
+@JsonClass(generateAdapter = true)
+data class User(
+    @Json(name = "id")
+    val id: String,
+
+    @Json(name = "phone")
+    val phone: String,
+
+    @Json(name = "name")
+    val name: String?,
+
+    @Json(name = "role")
+    val role: String
 )
 
 /**
@@ -50,7 +68,13 @@ data class OtpVerification(
     @Json(name = "phone")
     val phone: String,
 
-    @Json(name = "otp")
-    val otp: String
+    @Json(name = "code")
+    val code: String,
+
+    @Json(name = "device_id")
+    val deviceId: String,
+
+    @Json(name = "device_name")
+    val deviceName: String
 )
 

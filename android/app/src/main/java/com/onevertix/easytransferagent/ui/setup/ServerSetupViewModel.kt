@@ -2,6 +2,7 @@ package com.onevertix.easytransferagent.ui.setup
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.api.RetrofitClient
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.ui.base.BaseViewModel
@@ -26,8 +27,10 @@ class ServerSetupViewModel : BaseViewModel() {
     val uiState: StateFlow<ServerSetupUiState> = _uiState.asStateFlow()
 
     private lateinit var localPrefs: LocalPreferences
+    private lateinit var context: Context
 
-    fun initialize(context: Context) {
+    fun initialize(ctx: Context) {
+        context = ctx
         localPrefs = LocalPreferences(context)
 
         // Check if server URL already configured
@@ -49,13 +52,13 @@ class ServerSetupViewModel : BaseViewModel() {
         val url = current.serverUrl.trim()
 
         // Validate URL format
-        if (!url.startsWith("https://")) {
-            _uiState.value = current.copy(errorMessage = "URL must start with https://")
+        if (!url.startsWith("https://") && !url.startsWith("http://")) {
+            _uiState.value = current.copy(errorMessage = context.getString(R.string.error_https_required))
             return
         }
 
         if (url.length < 12) { // https://x.x minimum
-            _uiState.value = current.copy(errorMessage = "Invalid URL format")
+            _uiState.value = current.copy(errorMessage = context.getString(R.string.error_invalid_url))
             return
         }
 
@@ -76,7 +79,7 @@ class ServerSetupViewModel : BaseViewModel() {
                 } else {
                     _uiState.value = current.copy(
                         isLoading = false,
-                        errorMessage = "Server responded with error: ${response.code()}"
+                        errorMessage = context.getString(R.string.error_connection_failed, response.code().toString())
                     )
                 }
             } catch (e: Exception) {
@@ -84,16 +87,15 @@ class ServerSetupViewModel : BaseViewModel() {
                     isLoading = false,
                     errorMessage = when {
                         e.message?.contains("Unable to resolve host") == true ->
-                            "Cannot connect to server. Check URL and internet connection."
+                            context.getString(R.string.error_cannot_connect)
                         e.message?.contains("timeout") == true ->
-                            "Connection timeout. Server not responding."
+                            context.getString(R.string.error_timeout)
                         e.message?.contains("SSLHandshake") == true ->
-                            "SSL certificate error. Check server configuration."
-                        else -> "Connection failed: ${e.message}"
+                            context.getString(R.string.error_ssl)
+                        else -> context.getString(R.string.error_connection_failed, e.message ?: "Unknown")
                     }
                 )
             }
         }
     }
 }
-

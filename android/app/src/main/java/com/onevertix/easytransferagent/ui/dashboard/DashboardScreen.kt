@@ -2,6 +2,7 @@ package com.onevertix.easytransferagent.ui.dashboard
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -9,9 +10,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.models.TransferStats
+import java.text.ParsePosition
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,10 +35,10 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("EasyTransfer Agent") },
+                title = { Text(stringResource(R.string.dashboard_title)) },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Close, contentDescription = "Logout")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.logout))
                     }
                 }
             )
@@ -173,14 +180,14 @@ private fun ServiceStatusCard(
                     tint = if (isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Transfer Service",
+                    text = stringResource(R.string.transfer_service),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }
 
             Text(
-                text = if (isRunning) "Service is running and polling for jobs" else "Service is stopped",
+                text = if (isRunning) stringResource(R.string.service_running) else stringResource(R.string.service_stopped),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -195,7 +202,7 @@ private fun ServiceStatusCard(
                 ) {
                     Icon(Icons.Default.Close, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Stop Service")
+                    Text(stringResource(R.string.stop_service))
                 }
             } else {
                 Button(
@@ -204,7 +211,7 @@ private fun ServiceStatusCard(
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Start Service")
+                    Text(stringResource(R.string.start_service))
                 }
             }
         }
@@ -236,7 +243,7 @@ private fun StatsOverviewCard(
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Transfer Statistics",
+                    text = stringResource(R.string.statistics),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -249,12 +256,12 @@ private fun StatsOverviewCard(
             ) {
                 Column {
                     Text(
-                        text = "Today",
+                        text = stringResource(R.string.today),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${stats.todayCount} transfers",
+                        text = stringResource(R.string.transfers_count, stats.todayCount),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -270,7 +277,7 @@ private fun StatsOverviewCard(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Success",
+                            text = stringResource(R.string.success),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -284,7 +291,7 @@ private fun StatsOverviewCard(
                             color = MaterialTheme.colorScheme.error
                         )
                         Text(
-                            text = "Failed",
+                            text = stringResource(R.string.failed),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -292,15 +299,13 @@ private fun StatsOverviewCard(
                 }
             }
 
-            Divider()
-
             // Overall stats
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem("This Week", "${stats.weekCount}")
-                StatItem("Total", "${stats.totalCount}")
+                StatItem(stringResource(R.string.this_week), "${stats.weekCount}")
+                StatItem(stringResource(R.string.total), "${stats.totalCount}")
             }
         }
     }
@@ -329,12 +334,12 @@ private fun PendingJobsCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.List,
-                    contentDescription = null,
+                    imageVector = Icons.AutoMirrored.Filled.List,
+                    contentDescription = stringResource(R.string.icon_list),
                     tint = MaterialTheme.colorScheme.tertiary
                 )
                 Text(
-                    text = "Pending Jobs",
+                    text = stringResource(R.string.pending_jobs),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -374,20 +379,41 @@ private fun StatItem(
     }
 }
 
-private fun formatTimestamp(iso8601: String): String {
-    return try {
-        val instant = java.time.Instant.parse(iso8601)
-        val now = java.time.Instant.now()
-        val duration = java.time.Duration.between(instant, now)
+// Helper non-composable time bucket computation
+private enum class TimeBucket { JUST_NOW, MINUTES, HOURS, DAYS, RECENTLY }
 
-        when {
-            duration.toMinutes() < 1 -> "Just now"
-            duration.toMinutes() < 60 -> "${duration.toMinutes()}m ago"
-            duration.toHours() < 24 -> "${duration.toHours()}h ago"
-            else -> "${duration.toDays()}d ago"
-        }
-    } catch (e: Exception) {
-        "Recently"
+private fun computeTimeBucket(iso8601: String): Pair<TimeBucket, Int> {
+    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
+    }
+    val pos = ParsePosition(0)
+    val date = sdf.parse(iso8601, pos)
+    val nowMs = System.currentTimeMillis()
+    val thenMs = date?.time ?: nowMs
+    val diff = nowMs - thenMs
+
+    val minutes = (diff / 60_000L).toInt()
+    val hours = (diff / 3_600_000L).toInt()
+    val days = (diff / 86_400_000L).toInt()
+
+    return when {
+        minutes < 1 -> TimeBucket.JUST_NOW to 0
+        minutes < 60 -> TimeBucket.MINUTES to minutes
+        hours < 24 -> TimeBucket.HOURS to hours
+        days >= 0 -> TimeBucket.DAYS to days
+        else -> TimeBucket.RECENTLY to 0
+    }
+}
+
+@Composable
+private fun formatTimestamp(iso8601: String): String {
+    val (bucket, value) = computeTimeBucket(iso8601)
+    return when (bucket) {
+        TimeBucket.JUST_NOW -> stringResource(R.string.just_now)
+        TimeBucket.MINUTES -> stringResource(R.string.minutes_ago, value)
+        TimeBucket.HOURS -> stringResource(R.string.hours_ago, value)
+        TimeBucket.DAYS -> stringResource(R.string.days_ago, value)
+        TimeBucket.RECENTLY -> stringResource(R.string.recently)
     }
 }
 

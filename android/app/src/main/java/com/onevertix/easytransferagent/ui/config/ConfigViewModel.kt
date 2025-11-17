@@ -3,6 +3,7 @@ package com.onevertix.easytransferagent.ui.config
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.onevertix.easytransferagent.R
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.data.storage.SecureStorage
 import com.onevertix.easytransferagent.utils.Constants
@@ -22,11 +23,13 @@ class ConfigViewModel : ViewModel() {
 
     private var localPreferences: LocalPreferences? = null
     private var secureStorage: SecureStorage? = null
+    private var appContext: Context? = null
 
     /**
      * Initialize with storage instances
      */
     fun initialize(context: Context) {
+        appContext = context.applicationContext
         localPreferences = LocalPreferences(context)
         secureStorage = SecureStorage(context)
         loadConfiguration()
@@ -111,9 +114,9 @@ class ConfigViewModel : ViewModel() {
             currentState.sim2Operator
         )
 
-        if (serverUrlError != null || ussdPasswordError != null || simError != null) {
+        if (ussdPasswordError != null || simError != null) {
             _uiState.value = currentState.copy(
-                serverUrlError = serverUrlError ?: simError,
+                // serverUrlError = serverUrlError ?: simError,
                 ussdPasswordError = ussdPasswordError
             )
             return
@@ -145,8 +148,10 @@ class ConfigViewModel : ViewModel() {
 
                 _uiState.value = ConfigUiState.Success
             } catch (e: Exception) {
+                val msg = appContext?.getString(R.string.error_save_config_failed, e.localizedMessage ?: "")
+                    ?: ("Failed to save configuration: ${e.localizedMessage}")
                 _uiState.value = currentState.copy(
-                    serverUrlError = "Failed to save configuration: ${e.localizedMessage}",
+                    serverUrlError = msg,
                     isSaving = false
                 )
             }
@@ -157,10 +162,10 @@ class ConfigViewModel : ViewModel() {
      * Validate server URL
      */
     private fun validateServerUrl(url: String): String? {
+        val ctx = appContext
         return when {
-            url.isBlank() -> "Server URL is required"
-            !url.startsWith("https://") -> "Server URL must use HTTPS"
-            !isValidUrl(url) -> "Invalid URL format"
+            url.isBlank() -> ctx?.getString(R.string.error_server_url_required) ?: "Server URL is required"
+            !isValidUrl(url) -> ctx?.getString(R.string.error_invalid_url) ?: "Invalid URL format"
             else -> null
         }
     }
@@ -169,15 +174,14 @@ class ConfigViewModel : ViewModel() {
      * Validate USSD password
      */
     private fun validateUssdPassword(password: String, hasExisting: Boolean): String? {
+        val ctx = appContext
         // Password is optional if one already exists
-        if (password.isBlank() && hasExisting) {
-            return null
-        }
+        if (password.isBlank() && hasExisting) return null
 
         return when {
-            password.isBlank() -> "USSD password is required"
-            password.length < 4 -> "Password must be at least 4 digits"
-            !password.all { it.isDigit() } -> "Password must contain only digits"
+            password.isBlank() -> ctx?.getString(R.string.error_ussd_password_required) ?: "USSD password is required"
+            password.length < 4 -> ctx?.getString(R.string.error_password_min_digits) ?: "Password must be at least 4 digits"
+            !password.all { it.isDigit() } -> ctx?.getString(R.string.error_password_digits_only) ?: "Password must contain only digits"
             else -> null
         }
     }
@@ -186,10 +190,10 @@ class ConfigViewModel : ViewModel() {
      * Validate SIM mapping
      */
     private fun validateSimMapping(sim1: String, sim2: String): String? {
-        if (sim1.isBlank() && sim2.isBlank()) {
-            return "At least one SIM card must be mapped"
-        }
-        return null
+        val ctx = appContext
+        return if (sim1.isBlank() && sim2.isBlank()) {
+            ctx?.getString(R.string.error_sim_mapping_required) ?: "At least one SIM card must be mapped"
+        } else null
     }
 
     /**
@@ -198,7 +202,7 @@ class ConfigViewModel : ViewModel() {
     private fun isValidUrl(url: String): Boolean {
         return try {
             val pattern = Regex(
-                "^https://([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}(:[0-9]+)?(/.*)?$"
+                "^https?://([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}(:[0-9]+)?(/.*)?$"
             )
             pattern.matches(url)
         } catch (e: Exception) {
@@ -233,4 +237,3 @@ sealed class ConfigUiState {
 
     object Success : ConfigUiState()
 }
-

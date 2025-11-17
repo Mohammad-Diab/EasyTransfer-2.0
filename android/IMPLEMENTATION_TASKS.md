@@ -363,9 +363,9 @@ Create a centralized API client using Retrofit and OkHttp for all backend commun
 ### API Endpoints Covered
 ```
 Authentication:
-- POST /api/android/auth/request-otp
-- POST /api/android/auth/verify-otp
-- POST /api/android/auth/logout
+- POST /api/auth/android/request-otp
+- POST /api/auth/android/verify-otp
+- POST /api/auth/android/logout
 
 Transfers:
 - GET /api/android/jobs/pending
@@ -373,7 +373,7 @@ Transfers:
 - POST /api/android/balance/result
 
 Health:
-- GET /api/android/status
+- GET /api/android/health
 ```
 
 ### Configuration

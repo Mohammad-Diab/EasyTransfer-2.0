@@ -8,6 +8,7 @@ import com.onevertix.easytransferagent.data.models.OtpVerification
 import com.onevertix.easytransferagent.data.storage.LocalPreferences
 import com.onevertix.easytransferagent.data.storage.SecureStorage
 import com.onevertix.easytransferagent.data.api.RetrofitClient
+import com.onevertix.easytransferagent.utils.DeviceUtils
 import com.onevertix.easytransferagent.utils.Validation
 
 interface AuthRepository {
@@ -37,8 +38,8 @@ class DefaultAuthRepository(
 
     override suspend fun requestOtp(rawPhone: String): Result<OtpRequestResponse> {
         return try {
-            val phone = Validation.normalizeToE164Syrian(rawPhone)
-            if (!Validation.isValidSyrianPhone(rawPhone)) {
+            val phone = Validation.normalizeToLocalSyrian(rawPhone)
+            if (!Validation.isValidSyrianPhone(phone)) {
                 return Result.failure(IllegalArgumentException("Invalid phone number format"))
             }
             val response = api().requestOtp(OtpRequest(phone))
@@ -54,20 +55,31 @@ class DefaultAuthRepository(
 
     override suspend fun verifyOtp(rawPhone: String, otp: String): Result<AuthResponse> {
         return try {
-            val phone = Validation.normalizeToE164Syrian(rawPhone)
-            if (!Validation.isValidSyrianPhone(rawPhone)) {
+            val phone = Validation.normalizeToLocalSyrian(rawPhone)
+            if (!Validation.isValidSyrianPhone(phone)) {
                 return Result.failure(IllegalArgumentException("Invalid phone number format"))
             }
             if (!Validation.isValidOtp(otp)) {
                 return Result.failure(IllegalArgumentException("Invalid OTP format"))
             }
-            val response = api().verifyOtp(OtpVerification(phone = phone, otp = otp))
+
+            // Get or create device ID
+            val deviceId = secure.getOrCreateDeviceId()
+            val deviceName = DeviceUtils.getDeviceName()
+
+            val response = api().verifyOtp(OtpVerification(
+                phone = phone,
+                code = otp,  // Backend expects 'code' not 'otp'
+                deviceId = deviceId,
+                deviceName = deviceName
+            ))
+
             if (response.isSuccessful && response.body() != null) {
                 val body = response.body()!!
                 // Persist auth
                 secure.saveAccessToken(body.accessToken)
                 secure.saveTokenExpiry((System.currentTimeMillis() / 1000) + body.expiresIn)
-                secure.saveUserId(body.userId)
+                secure.saveUserId(body.user.id)
                 secure.saveDeviceId(body.deviceId)
 
                 // Auth providers are already set in init, token is now available

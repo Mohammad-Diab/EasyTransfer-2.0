@@ -9,9 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.onevertix.easytransferagent.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,7 +26,7 @@ fun ServerSetupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Server Configuration") }
+                title = { Text(stringResource(R.string.server_title)) }
             )
         }
     ) { padding ->
@@ -48,14 +50,14 @@ fun ServerSetupScreen(
 
             // Title
             Text(
-                text = "Backend Server URL",
+                text = stringResource(R.string.server_title),
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
 
             // Description
             Text(
-                text = "Enter the backend API server URL. We'll test the connection before proceeding.",
+                text = stringResource(R.string.server_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -67,8 +69,8 @@ fun ServerSetupScreen(
             OutlinedTextField(
                 value = state.serverUrl,
                 onValueChange = onUrlChange,
-                label = { Text("Server URL") },
-                placeholder = { Text("https://api.example.com") },
+                label = { Text(stringResource(R.string.server_url_label)) },
+                placeholder = { Text(stringResource(R.string.server_url_hint)) },
                 isError = state.errorMessage != null,
                 supportingText = state.errorMessage?.let { {
                     Text(it, color = MaterialTheme.colorScheme.error)
@@ -90,11 +92,11 @@ fun ServerSetupScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Testing Connection...")
+                    Text(stringResource(R.string.testing_connection))
                 } else {
                     Icon(Icons.Default.Check, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Test Connection")
+                    Text(stringResource(R.string.test_connection))
                 }
             }
 
@@ -110,22 +112,22 @@ fun ServerSetupScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Requirements:",
+                        text = stringResource(R.string.server_requirements),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "• URL must start with https://",
+                        text = stringResource(R.string.req_https),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "• Server must respond to ping",
+                        text = stringResource(R.string.req_ping),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "• Example: https://api.easytransfer.com",
+                        text = stringResource(R.string.req_example),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
@@ -160,7 +162,7 @@ fun ServerSetupSuccessScreen(
     ) {
         Icon(
             imageVector = Icons.Default.Check,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.icon_check),
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.primary
         )
@@ -168,7 +170,7 @@ fun ServerSetupSuccessScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Connection Successful!",
+            text = stringResource(R.string.connection_successful),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -176,7 +178,7 @@ fun ServerSetupSuccessScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Connected to:\n$serverUrl",
+            text = stringResource(R.string.connected_to, serverUrl),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -188,7 +190,7 @@ fun ServerSetupSuccessScreen(
             onClick = onContinue,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Continue to Setup")
+            Text(stringResource(R.string.continue_setup))
         }
     }
 }

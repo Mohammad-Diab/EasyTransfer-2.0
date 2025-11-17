@@ -1,23 +1,25 @@
 package com.onevertix.easytransferagent.utils
 
 object Validation {
-    // Accepts +9639XXXXXXXX or 09XXXXXXXX, normalizes to +9639XXXXXXXX
+    // Only accepts 09XXXXXXXX format (local Syrian format)
     private val syLocalRegex = Regex("^09\\d{8}$")
-    private val syE164Regex = Regex("^\\+9639\\d{8}$")
     private val otpRegex = Regex("^\\d{6}$")
 
+    /**
+     * Validates Syrian phone number - MUST be in 09xxxxxxxx format
+     */
     fun isValidSyrianPhone(input: String): Boolean {
         val clean = input.trim().replace(" ", "")
-        return syLocalRegex.matches(clean) || syE164Regex.matches(clean)
+        return syLocalRegex.matches(clean)
     }
 
-    fun normalizeToE164Syrian(input: String): String {
+    /**
+     * Normalize phone number to 09xxxxxxxx format
+     * Removes spaces and validates format
+     */
+    fun normalizeToLocalSyrian(input: String): String {
         val clean = input.trim().replace(" ", "")
-        return when {
-            syE164Regex.matches(clean) -> clean
-            syLocalRegex.matches(clean) -> "+963" + clean.drop(1)
-            else -> clean // return as-is; caller should validate first
-        }
+        return clean
     }
 
     fun isValidOtp(input: String): Boolean = otpRegex.matches(input.trim())
