@@ -18,7 +18,6 @@ import { BotClientService } from '../bot/bot-client.service';
 import { SubmitResultDto } from './dto/submit-result.dto';
 
 @Controller('api/android')
-@UseGuards(AuthGuard('jwt'))
 export class AndroidController {
   constructor(
     private transfersService: TransfersService,
@@ -32,6 +31,7 @@ export class AndroidController {
    * Poll for next pending job (balance or transfer)
    * Balance jobs have priority over transfer jobs
    */
+  @UseGuards(AuthGuard('jwt'))
   @Get('requests/next')
   async getNextRequest(@Request() req) {
     const userId = req.user.userId;
@@ -60,6 +60,7 @@ export class AndroidController {
    * POST /api/android/requests/:id/result
    * Submit USSD execution result
    */
+  @UseGuards(AuthGuard('jwt'))
   @Post('requests/:id/result')
   @HttpCode(HttpStatus.OK)
   async submitResult(
@@ -83,6 +84,7 @@ export class AndroidController {
    * POST /api/android/balance/result
    * Submit balance inquiry USSD result
    */
+  @UseGuards(AuthGuard('jwt'))
   @Post('balance/result')
   @HttpCode(HttpStatus.OK)
   async submitBalanceResult(
@@ -119,6 +121,7 @@ export class AndroidController {
    * Get operator message rules for USSD response parsing
    * Android calls this on startup
    */
+  @UseGuards(AuthGuard('jwt'))
   @Get('rules')
   async getRules() {
     return this.operatorsService.getOperatorRules();
@@ -129,6 +132,7 @@ export class AndroidController {
    * Check if rules have been updated since last fetch
    * Returns timestamp only for efficient cache checking
    */
+  @UseGuards(AuthGuard('jwt'))
   @Get('rules/last-updated')
   async getRulesLastUpdated() {
     return this.operatorsService.getRulesLastUpdated();
