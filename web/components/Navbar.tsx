@@ -9,6 +9,8 @@ import {
   DashboardOutlined,
   LogoutOutlined,
   ExclamationCircleOutlined,
+  AndroidOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -93,6 +95,14 @@ export default function Navbar() {
           className="flex-1 min-w-0 border-0"
         />
         <Button
+          type="default"
+          icon={<AndroidOutlined />}
+          href="/android/easytransfer-agent.apk"
+          download
+        >
+          تحميل تطبيق الأندرويد
+        </Button>
+        <Button
           type="text"
           icon={<LogoutOutlined />}
           onClick={handleLogout}
@@ -123,6 +133,16 @@ export default function Navbar() {
           items={getNavItems()}
           className="border-0"
         />
+        <Button
+          type="default"
+          icon={<DownloadOutlined />}
+          href="/android/easytransfer-agent.apk"
+          download
+          block
+          className="mt-4"
+        >
+          تحميل تطبيق الأندرويد
+        </Button>
         <Button
           type="text"
           icon={<LogoutOutlined />}
