@@ -56,7 +56,7 @@ async function main() {
     update: {},
     create: {
       phone: '0935798344',
-      name: 'System Admin',
+      name: 'Mohammad Diab',
       role: 'ADMIN',
       status: 'active',
       telegram_user_id: 258304206,
@@ -75,6 +75,25 @@ async function main() {
       status: 'active',
       telegram_user_id: 987654321,
     },
+  });
+
+  // 5. Seed Operator Transfer Tiers
+  console.log('💱 Creating operator transfer tiers...');
+  await prisma.transferTier.createMany({
+    data: [
+      { amount: 50 },
+      { amount: 100 },
+      { amount: 200 },
+      { amount: 500 },
+      { amount: 1000 },
+      { amount: 2000 },
+      { amount: 5000 },
+      { amount: 10000 },
+      { amount: 20000 },
+      { amount: 50000 },
+      { amount: 100000 },
+    ],
+    skipDuplicates: true,
   });
 
   console.log('✅ Database seeded successfully!');
