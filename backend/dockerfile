@@ -1,0 +1,31 @@
+# Stage 1: Build
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+RUN npx prisma generate
+
+# Stage 2: Production image
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+
+RUN npm ci --omit=dev
+
+ENV NODE_ENV=production
+
+# If using Prisma, generate client (optional if already generated)
+# RUN npx prisma generate
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start:prod"]
