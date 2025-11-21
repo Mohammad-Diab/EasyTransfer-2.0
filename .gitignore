@@ -39,7 +39,6 @@ Thumbs.db
 dev.db
 
 # Build outputs
-*.apk
 *.aab
 *.aar
 
