@@ -8,6 +8,7 @@ import {
   SwapOutlined,
   LogoutOutlined,
   ExclamationCircleOutlined,
+  AndroidOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '@/hooks/useAuth';
 import { UserRole } from '@/lib/constants';
@@ -64,6 +65,15 @@ export default function AppLayout({
             items={menuItems}
             className="flex-1 mr-8"
           />
+          <Button
+            type="default"
+            icon={<AndroidOutlined />}
+            href="/android/easytransfer-agent.apk"
+            download
+            className="mr-2"
+          >
+            تحميل تطبيق الأندرويد
+          </Button>
           <Button
             type="primary"
             danger
