@@ -33,12 +33,13 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async verifyWebOtp(@Body() dto: VerifyOtpDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.verifyWebOtp(dto.phone, dto.code);
-    
+    const isProd = process.env.NODE_ENV === 'production';
+
     // Set JWT token as HTTP-only cookie
     res.cookie('access_token', result.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
