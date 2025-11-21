@@ -70,7 +70,7 @@ export default function AppLayout({
             icon={<AndroidOutlined />}
             href="/android/easytransfer-agent.apk"
             download
-            className="mr-2"
+            className="mr-2 ml-2"
           >
             تحميل تطبيق الأندرويد
           </Button>
