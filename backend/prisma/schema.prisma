@@ -1,11 +1,13 @@
 // Prisma Schema for EasyTransfer 2.0
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
   provider = "postgresql" // Change to "sqlite" for development
+  url      = env("DATABASE_URL")
 }
 
 // 1. Users Table
