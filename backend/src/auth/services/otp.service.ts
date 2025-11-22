@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class OtpService {
@@ -21,7 +21,7 @@ export class OtpService {
     purpose: 'web_login' | 'android_login',
   ): Promise<string> {
     const code = this.generateCode();
-    const hashedCode = await bcrypt.hash(code, 10);
+    const hashedCode = bcrypt.hashSync(code, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     await this.prisma.otpCode.create({
@@ -64,7 +64,7 @@ export class OtpService {
     }
 
     // Verify code
-    const isValid = await bcrypt.compare(code, otp.code);
+    const isValid = bcrypt.compareSync(code, otp.code);
 
     if (isValid) {
       // Mark as used

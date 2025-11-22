@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { BotClientService } from '../bot/bot-client.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -36,7 +36,7 @@ export class AuthService {
     }
 
     const code = this.generateOtpCode();
-    const hashedCode = await bcrypt.hash(code, 10);
+    const hashedCode = bcrypt.hashSync(code, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     await this.prisma.otpCode.create({
@@ -71,7 +71,7 @@ export class AuthService {
       orderBy: { created_at: 'desc' },
     });
 
-    if (!otp || !(await bcrypt.compare(code, otp.code))) {
+    if (!otp || !bcrypt.compareSync(code, otp.code)) {
       throw new UnauthorizedException('Invalid or expired OTP');
     }
 
@@ -98,7 +98,7 @@ export class AuthService {
     if (user.status !== 'active') throw new BadRequestException('User inactive');
 
     const code = this.generateOtpCode();
-    const hashedCode = await bcrypt.hash(code, 10);
+    const hashedCode = bcrypt.hashSync(code, 10);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     await this.prisma.otpCode.create({
@@ -138,7 +138,7 @@ export class AuthService {
       orderBy: { created_at: 'desc' },
     });
 
-    if (!otp || !(await bcrypt.compare(code, otp.code))) {
+    if (!otp || !bcrypt.compareSync(code, otp.code)) {
       throw new UnauthorizedException('Invalid or expired OTP');
     }
 
