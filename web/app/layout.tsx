@@ -5,7 +5,6 @@ import { ConfigProvider, Layout } from 'antd';
 import arEG from 'antd/locale/ar_EG';
 import { ReactNode, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Navbar from '@/components/Navbar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useAuth } from '@/hooks/useAuth';
 import './globals.css';
@@ -16,16 +15,10 @@ function AppContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
   
-  // Don't show navbar on login page, if not authenticated, or on transfers/admin pages (they have their own layout)
-  const showNavbar = pathname !== '/login' && 
-                     !pathname.startsWith('/transfers') && 
-                     !pathname.startsWith('/admin') && 
-                     isAuthenticated;
 
   return (
     <Layout className="min-h-screen">
-      {showNavbar && <Navbar />}
-      <Content className={showNavbar ? 'p-6' : ''}>
+      <Content>
         {children}
       </Content>
     </Layout>
