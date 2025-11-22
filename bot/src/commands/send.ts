@@ -83,7 +83,7 @@ export async function sendConversation(conversation: Conversation<MyContext, MyC
       const response = await backendClient.submitTransfer(userId, phone, finalAmount);
 
       if (response.id && response.status) {
-        await ctx.reply(MESSAGES.REQUEST_RECEIVED);
+        await ctx.reply(response.message || MESSAGES.REQUEST_RECEIVED);
       } else {
         await ctx.reply(response.message || MESSAGES.BACKEND_ERROR);
       }
