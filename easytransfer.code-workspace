@@ -25,7 +25,7 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
+      "source.fixAll.eslint": "explicit"
     },
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -53,7 +53,8 @@
       "**/build": true
     },
     "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "prisma.pinToPrisma6": true
   },
   "extensions": {
     "recommendations": [
